@@ -1,29 +1,10 @@
-import "dotenv/config";
-import Fastify from "fastify";
-
-const fastify = Fastify({
-	logger: true,
-});
-
-// const baseCorsConfig = {
-// 	origin: process.env.CORS_ORIGIN || "",
-// 	methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-// 	allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-// 	credentials: true,
-// 	maxAge: 86400,
-// };
-// fastify.register(fastifyCors, baseCorsConfig);
-
-fastify.get("/health", async () => {
-	return "Server is running";
-});
-
 import { createAgent, createNetwork, gemini } from '@inngest/agent-kit';
 import { createServer } from '@inngest/agent-kit/server';
-import { writingPrompt } from './helpers/prompts/writing';
+import "dotenv/config";
+import { improvementPrompt } from "./helpers/prompts/improvement";
 import { planningPrompt } from './helpers/prompts/planning';
 import { reviewPrompt } from "./helpers/prompts/review";
-import { improvementPrompt } from "./helpers/prompts/improvement";
+import { writingPrompt } from './helpers/prompts/writing';
 
 const writerAgent = createAgent({
 	name: 'Document editor',
@@ -60,11 +41,3 @@ const server = createServer({
 });
 
 server.listen(3010, () => console.log("Agent kit running!"));
-
-fastify.listen({ port: 5000 }, (err) => {
-	if (err) {
-		fastify.log.error(err);
-		process.exit(1);
-	}
-	console.log("Server running on port 5000");
-});

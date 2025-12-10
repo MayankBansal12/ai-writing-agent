@@ -13,7 +13,6 @@ pnpm run dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-The API is running at [http://localhost:3000](http://localhost:3000).
 
 ## Project Structure
 
@@ -21,7 +20,7 @@ The API is running at [http://localhost:3000](http://localhost:3000).
 ai-writing-agent/
 ├── apps/
 │   ├── web/         # Frontend application (Next.js)
-│   └── server/      # Backend API (Fastify)
+│   └── server/      # Backend Server (Bun.js)
 ├── packages/
 │   ├── api/         # API layer / business logic
 ```
