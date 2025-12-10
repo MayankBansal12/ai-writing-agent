@@ -1,25 +1,25 @@
 {
-  "name": "server",
-  "main": "src/index.ts",
-  "type": "module",
-  "scripts": {
-    "build": "tsdown",
-    "check-types": "tsc -b",
-    "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
-    "dev": "bun run --hot src/index.ts",
-    "start": "bun run dist/index.js"
-  },
-  "dependencies": {
-    "@inngest/agent-kit": "^0.13.2",
-    "dotenv": "^17.2.2",
-    "ingest": "^1.0.0",
-    "inngest": "^3.47.0",
-    "zod": "^4.1.13"
-  },
-  "devDependencies": {
-    "@ai-writing-agent/config": "workspace:*",
-    "@types/bun": "^1.2.6",
-    "tsdown": "^0.16.5",
-    "typescript": "^5.8.2"
-  }
+	"name": "server",
+	"main": "src/index.ts",
+	"type": "module",
+	"scripts": {
+		"build": "tsdown",
+		"check-types": "tsc -b",
+		"compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
+		"dev": "bun run --hot src/index.ts",
+		"start": "bun run dist/index.js"
+	},
+	"dependencies": {
+		"@inngest/agent-kit": "^0.13.2",
+		"dotenv": "^17.2.2",
+		"ingest": "^1.0.0",
+		"inngest": "^3.47.0",
+		"zod": "^4.1.13"
+	},
+	"devDependencies": {
+		"@ai-writing-agent/config": "workspace:*",
+		"@types/bun": "^1.2.6",
+		"tsdown": "^0.16.5",
+		"typescript": "^5.8.2"
+	}
 }

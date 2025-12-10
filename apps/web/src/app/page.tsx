@@ -1,6 +1,6 @@
 "use client";
 
-const TITLE_TEXT = `AI Writing Agent`;
+const TITLE_TEXT = "AI Writing Agent";
 
 export default function Home() {
 	return (
