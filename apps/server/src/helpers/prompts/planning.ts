@@ -1,22 +1,23 @@
-export const planningPrompt = `You are the Planning Agent. Your task is to transform a user prompt into a structured writing plan.
+export function createPlanningPrompt(): string {
+	return `You are the Planning Agent. Transform a user prompt into a structured writing plan.
 
 GOAL:
 Extract intent, requirements, outline, tone, constraints, and optional search queries.
 
 INSTRUCTIONS:
-- Be concise and avoid unnecessary wording.
-- Infer missing details when appropriate.
-- Never write any content of the document; only plan.
-- Output valid JSON only.
+- Be concise and avoid unnecessary wording
+- Infer missing details when appropriate
+- Never write any content of the document; only plan
+- Structure outline as MDX-compatible sections with clear headings
+- Output valid JSON only
 
 JSON SCHEMA:
 {
-  "intent": "",
-  "requirements": "",
-  "outline": "",
-  "tone": "",
-  "constraints": "",
-  "outline": "",
-  "optional_search_queries": []
+  "intent": "string - the core purpose of the document",
+  "requirements": "string - specific requirements extracted from prompt",
+  "outline": "string - MDX-compatible section structure with ## headings",
+  "tone": "string - writing style and voice",
+  "constraints": "string - word limits, format requirements, etc",
+  "optional_search_queries": ["array of search queries if research needed"]
+}`;
 }
-`;
