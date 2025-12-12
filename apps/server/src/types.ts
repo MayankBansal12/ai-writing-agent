@@ -29,7 +29,6 @@ export interface WritingAgentState {
 	draft?: string;
 	review?: WritingReview;
 	finalDocument?: string;
-	timings: AgentTiming[];
 	_agentStartTimes: Record<string, number>;
 }
 

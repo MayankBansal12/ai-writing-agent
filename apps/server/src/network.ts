@@ -9,14 +9,13 @@ import { createImprovementPrompt } from "./helpers/prompts/improvement";
 import { createPlanningPrompt } from "./helpers/prompts/planning";
 import { createReviewPrompt } from "./helpers/prompts/review";
 import { createWritingPrompt } from "./helpers/prompts/writing";
-import { formatDuration, getTextContent, parseJSON } from "./helpers/utils";
+import { getTextContent, parseJSON } from "./helpers/utils";
 import type {
-	AgentTiming,
 	FinalDocument,
 	WritingAgentState,
 	WritingDraft,
 	WritingPlan,
-	WritingReview,
+	WritingReview
 } from "./types";
 
 const groqConfig = {
@@ -30,25 +29,7 @@ const planningAgent = createAgent<WritingAgentState>({
 	model: openai({
 		model: "openai/gpt-oss-safeguard-20b",
 		...groqConfig,
-	}),
-	lifecycle: {
-		onStart: ({ prompt, history, network }) => {
-			const state = network?.state.data as WritingAgentState;
-			state._agentStartTimes["Planning Agent"] = Date.now();
-			return { prompt, history: history || [], stop: false };
-		},
-		onFinish: ({ result, network }) => {
-			const state = network?.state.data as WritingAgentState;
-			const startTime = state._agentStartTimes["Planning Agent"];
-			if (startTime) {
-				state.timings.push({
-					name: "Planning Agent",
-					duration: Date.now() - startTime,
-				});
-			}
-			return result;
-		},
-	},
+	})
 });
 
 const writerAgent = createAgent<WritingAgentState>({
@@ -63,9 +44,7 @@ const writerAgent = createAgent<WritingAgentState>({
 		...groqConfig,
 	}),
 	lifecycle: {
-		onStart: ({ prompt, history, network }) => {
-			const state = network?.state.data as WritingAgentState;
-			state._agentStartTimes["Writing Agent"] = Date.now();
+		onStart: ({ prompt, history }) => {
 			const planMessage: Message = {
 				type: "text",
 				role: "user",
@@ -77,18 +56,7 @@ const writerAgent = createAgent<WritingAgentState>({
 				history: [...(history || []), planMessage],
 				stop: false,
 			};
-		},
-		onFinish: ({ result, network }) => {
-			const state = network?.state.data as WritingAgentState;
-			const startTime = state._agentStartTimes["Writing Agent"];
-			if (startTime) {
-				state.timings.push({
-					name: "Writing Agent",
-					duration: Date.now() - startTime,
-				});
-			}
-			return result;
-		},
+		}
 	},
 });
 
@@ -104,9 +72,7 @@ const reviewAgent = createAgent<WritingAgentState>({
 		...groqConfig,
 	}),
 	lifecycle: {
-		onStart: ({ prompt, history, network }) => {
-			const state = network?.state.data as WritingAgentState;
-			state._agentStartTimes["Review Agent"] = Date.now();
+		onStart: ({ prompt, history }) => {
 			const draftMessage: Message = {
 				type: "text",
 				role: "user",
@@ -118,18 +84,7 @@ const reviewAgent = createAgent<WritingAgentState>({
 				history: [...(history || []), draftMessage],
 				stop: false,
 			};
-		},
-		onFinish: ({ result, network }) => {
-			const state = network?.state.data as WritingAgentState;
-			const startTime = state._agentStartTimes["Review Agent"];
-			if (startTime) {
-				state.timings.push({
-					name: "Review Agent",
-					duration: Date.now() - startTime,
-				});
-			}
-			return result;
-		},
+		}
 	},
 });
 
@@ -140,16 +95,14 @@ const improvementAgent = createAgent<WritingAgentState>({
 		if (!state.plan || !state.draft || !state.review) {
 			return "Awaiting plan, draft, and review...";
 		}
-		return createImprovementPrompt(state.plan, state.draft, state.review);
+		return createImprovementPrompt(state.draft, state.review);
 	},
 	model: openai({
 		model: "moonshotai/kimi-k2-instruct-0905",
 		...groqConfig,
 	}),
 	lifecycle: {
-		onStart: ({ prompt, history, network }) => {
-			const state = network?.state.data as WritingAgentState;
-			state._agentStartTimes["Improvement Agent"] = Date.now();
+		onStart: ({ prompt, history }) => {
 			const reviewMessage: Message = {
 				type: "text",
 				role: "user",
@@ -161,17 +114,6 @@ const improvementAgent = createAgent<WritingAgentState>({
 				history: [...(history || []), reviewMessage],
 				stop: false,
 			};
-		},
-		onFinish: ({ result, network }) => {
-			const state = network?.state.data as WritingAgentState;
-			const startTime = state._agentStartTimes["Improvement Agent"];
-			if (startTime) {
-				state.timings.push({
-					name: "Improvement Agent",
-					duration: Date.now() - startTime,
-				});
-			}
-			return result;
 		},
 	},
 });
@@ -241,38 +183,21 @@ export interface OrchestratorResult {
 	success: boolean;
 	finalDocument?: string;
 	state: WritingAgentState;
-	timings: AgentTiming[];
-	totalDuration: number;
 }
 
 export async function runWritingWorkflow(
 	userPrompt: string,
 ): Promise<OrchestratorResult> {
-	const totalStart = Date.now();
-
 	const state = createState<WritingAgentState>({
 		userPrompt,
-		timings: [],
 		_agentStartTimes: {},
 	});
 
-	console.log("[START] Writing workflow");
-
 	await writingNetwork.run(userPrompt, { state });
-
-	const totalDuration = Date.now() - totalStart;
-
-	for (const timing of state.data.timings) {
-		console.log(`[DONE] ${timing.name} (${formatDuration(timing.duration)})`);
-	}
-
-	console.log(`[COMPLETE] Total time: ${formatDuration(totalDuration)}`);
 
 	return {
 		success: !!state.data.finalDocument,
 		finalDocument: state.data.finalDocument,
-		state: state.data,
-		timings: state.data.timings,
-		totalDuration,
+		state: state.data
 	};
 }

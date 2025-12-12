@@ -1,7 +1,6 @@
-import type { WritingPlan, WritingReview } from "../../types";
+import type { WritingReview } from "../../types";
 
 export function createImprovementPrompt(
-	plan: WritingPlan,
 	draft: string,
 	review: WritingReview,
 ): string {
@@ -24,29 +23,20 @@ export function createImprovementPrompt(
 		.join("\n");
 
 	return `You are the Improvement Agent. Generate an improved and polished version of the draft using the review notes.
+		DRAFT TO IMPROVE: ${draft}
 
-PLAN CONTEXT:
-- Intent: ${plan.intent}
-- Requirements: ${plan.requirements}
-- Tone: ${plan.tone}
-- Constraints: ${plan.constraints}
+		REVIEW NOTES: ${reviewSummary}
 
-DRAFT TO IMPROVE:
-${draft}
+		INSTRUCTIONS:
+		- Fix all issues while preserving the meaning and user intent
+		- Maintain the planned tone and structure
+		- Expand missing parts only when required
+		- Ensure proper MDX formatting with correct heading hierarchy
+		- Produce the final polished version
+		- Output valid JSON only
 
-REVIEW NOTES:
-${reviewSummary}
-
-INSTRUCTIONS:
-- Fix all issues while preserving the meaning and user intent
-- Maintain the planned tone and structure
-- Expand missing parts only when required
-- Ensure proper MDX formatting with correct heading hierarchy
-- Produce the final polished version
-- Output valid JSON only
-
-JSON SCHEMA:
-{
-  "final_document": "string - the complete polished MDX document"
-}`;
+		JSON SCHEMA: {
+			"final_document": "string - the complete polished MDX document"
+		}
+	`;
 }
