@@ -15,7 +15,7 @@ import type {
 	WritingAgentState,
 	WritingDraft,
 	WritingPlan,
-	WritingReview
+	WritingReview,
 } from "./types";
 
 const groqConfig = {
@@ -29,7 +29,7 @@ const planningAgent = createAgent<WritingAgentState>({
 	model: openai({
 		model: "openai/gpt-oss-safeguard-20b",
 		...groqConfig,
-	})
+	}),
 });
 
 const writerAgent = createAgent<WritingAgentState>({
@@ -56,7 +56,7 @@ const writerAgent = createAgent<WritingAgentState>({
 				history: [...(history || []), planMessage],
 				stop: false,
 			};
-		}
+		},
 	},
 });
 
@@ -84,7 +84,7 @@ const reviewAgent = createAgent<WritingAgentState>({
 				history: [...(history || []), draftMessage],
 				stop: false,
 			};
-		}
+		},
 	},
 });
 
@@ -198,6 +198,6 @@ export async function runWritingWorkflow(
 	return {
 		success: !!state.data.finalDocument,
 		finalDocument: state.data.finalDocument,
-		state: state.data
+		state: state.data,
 	};
 }

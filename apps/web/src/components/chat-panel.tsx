@@ -1,17 +1,18 @@
 "use client";
 
+import { Send } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { MDXRenderer } from "@/lib/mdx-renderer";
+import { cn } from "@/lib/utils";
 
 interface Message {
 	id: string;
 	content: string;
 	role: "user" | "assistant";
+	format?: "mdx" | "plain";
 }
 
 interface ChatPanelProps {
@@ -22,7 +23,8 @@ export function ChatPanel({ className }: ChatPanelProps) {
 	const [messages, setMessages] = useState<Message[]>([
 		{
 			id: "1",
-			content: "Hello! I'm your AI writing assistant. How can I help you today?",
+			content:
+				"Hello! I'm your AI writing assistant. How can I help you today?",
 			role: "assistant",
 		},
 	]);
@@ -45,7 +47,8 @@ export function ChatPanel({ className }: ChatPanelProps) {
 		setTimeout(() => {
 			const assistantMessage: Message = {
 				id: (Date.now() + 1).toString(),
-				content: "I received your message. AI response functionality will be implemented soon.",
+				content:
+					"I received your message. AI response functionality will be implemented soon.",
 				role: "assistant",
 			};
 			setMessages((prev) => [...prev, assistantMessage]);
@@ -62,7 +65,7 @@ export function ChatPanel({ className }: ChatPanelProps) {
 	return (
 		<Card className={cn("flex h-full flex-col", className)}>
 			<CardHeader>
-				<h2 className="text-lg font-semibold">Agent Chat</h2>
+				<h2 className="font-semibold text-lg">Agent Chat</h2>
 			</CardHeader>
 			<CardContent className="flex flex-1 flex-col gap-4 overflow-hidden p-0">
 				<div className="flex-1 overflow-y-auto p-4">
@@ -83,8 +86,11 @@ export function ChatPanel({ className }: ChatPanelProps) {
 											: "bg-muted text-foreground",
 									)}
 								>
-									<div className="[&_p]:my-0 [&_p:last-child]:mb-0 [&_p:first-child]:mt-0">
-										<MDXRenderer content={message.content} isMDX={true} />
+									<div className="[&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_p]:my-0">
+										<MDXRenderer
+											content={message.content}
+											isMDX={message.format !== "plain"}
+										/>
 									</div>
 								</div>
 							</div>
@@ -115,4 +121,3 @@ export function ChatPanel({ className }: ChatPanelProps) {
 		</Card>
 	);
 }
-

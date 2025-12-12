@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export type FormatType = "mdx" | "normal";
+export type FormatType = "mdx" | "plain";
 
 interface FormatToggleProps {
 	format: FormatType;
@@ -19,6 +19,17 @@ export function FormatToggle({
 	return (
 		<div className={cn("flex gap-1 rounded-md border p-1", className)}>
 			<Button
+				variant={format === "plain" ? "default" : "ghost"}
+				size="sm"
+				onClick={() => onFormatChange("plain")}
+				className={cn(
+					"h-7 px-3 text-xs",
+					format === "plain" && "bg-primary text-primary-foreground",
+				)}
+			>
+				Plain
+			</Button>
+			<Button
 				variant={format === "mdx" ? "default" : "ghost"}
 				size="sm"
 				onClick={() => onFormatChange("mdx")}
@@ -29,18 +40,6 @@ export function FormatToggle({
 			>
 				MDX
 			</Button>
-			<Button
-				variant={format === "normal" ? "default" : "ghost"}
-				size="sm"
-				onClick={() => onFormatChange("normal")}
-				className={cn(
-					"h-7 px-3 text-xs",
-					format === "normal" && "bg-primary text-primary-foreground",
-				)}
-			>
-				Normal
-			</Button>
 		</div>
 	);
 }
-

@@ -1,9 +1,14 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import {
+	type ImperativePanelHandle,
+	Panel,
+	PanelGroup,
+	PanelResizeHandle,
+} from "react-resizable-panels";
 import { ChatPanel } from "@/components/chat-panel";
 import { DocumentPanel } from "@/components/document-panel";
-import { useEffect, useRef, useState } from "react";
-import { Panel, PanelGroup, PanelResizeHandle, type ImperativePanelHandle } from "react-resizable-panels";
 
 export default function Home() {
 	const [isChatOpen, setIsChatOpen] = useState(true);
@@ -25,7 +30,7 @@ export default function Home() {
 	}, [isChatOpen]);
 
 	return (
-		<div className="bg-primary-foreground dark:bg-secondary-foreground flex flex-1 h-svh flex-col overflow-hidden p-2">
+		<div className="flex h-svh flex-1 flex-col overflow-hidden bg-primary-foreground p-2 dark:bg-secondary-foreground">
 			<PanelGroup direction="horizontal" className="h-full w-full">
 				<Panel
 					ref={documentPanelRef}
@@ -33,7 +38,7 @@ export default function Home() {
 					minSize={50}
 					maxSize={isChatOpen ? 70 : 100}
 				>
-					<div className="h-full w-full pr-1 overflow-hidden">
+					<div className="h-full w-full overflow-hidden pr-1">
 						<DocumentPanel
 							isChatOpen={isChatOpen}
 							onToggleChat={handleToggleChat}
@@ -41,7 +46,9 @@ export default function Home() {
 					</div>
 				</Panel>
 
-				{isChatOpen && <PanelResizeHandle className="bg-border transition-colors hover:bg-primary/20" />}
+				{isChatOpen && (
+					<PanelResizeHandle className="bg-border transition-colors hover:bg-primary/20" />
+				)}
 
 				<Panel
 					ref={chatPanelRef}
@@ -51,7 +58,7 @@ export default function Home() {
 					collapsible
 				>
 					{isChatOpen && (
-						<div className="h-full w-full pl-1 overflow-hidden">
+						<div className="h-full w-full overflow-hidden pl-1">
 							<ChatPanel className="h-full" />
 						</div>
 					)}

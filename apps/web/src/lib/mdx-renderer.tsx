@@ -13,7 +13,7 @@ export function MDXRenderer({
 	isMDX = true,
 	className = "",
 }: MDXRendererProps) {
-	if (!isMDX) {
+	if (isMDX) {
 		return (
 			<pre className={`whitespace-pre-wrap font-mono text-sm ${className}`}>
 				{content}
@@ -31,30 +31,24 @@ export function MDXRenderer({
 			<ReactMarkdown
 				components={{
 					h1: ({ children }) => (
-						<h1 className="text-3xl font-bold my-4 first:mt-0">
-							{children}
-						</h1>
+						<h1 className="my-4 font-bold text-3xl first:mt-0">{children}</h1>
 					),
 					h2: ({ children }) => (
-						<h2 className="text-2xl font-semibold my-3 first:mt-0">
+						<h2 className="my-3 font-semibold text-2xl first:mt-0">
 							{children}
 						</h2>
 					),
 					h3: ({ children }) => (
-						<h3 className="text-xl font-semibold my-2 first:mt-0">
+						<h3 className="my-2 font-semibold text-xl first:mt-0">
 							{children}
 						</h3>
 					),
-					p: ({ children }) => (
-						<p className="mb-4 last:mb-0">{children}</p>
-					),
+					p: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>,
 					ul: ({ children }) => (
-						<ul className="list-disc list-inside mb-4 space-y-1">
-							{children}
-						</ul>
+						<ul className="mb-4 list-inside list-disc space-y-1">{children}</ul>
 					),
 					ol: ({ children }) => (
-						<ol className="list-decimal list-inside mb-4 space-y-1">
+						<ol className="mb-4 list-inside list-decimal space-y-1">
 							{children}
 						</ol>
 					),
@@ -62,7 +56,7 @@ export function MDXRenderer({
 					code: ({ children, className }) => {
 						const isInline = !className;
 						return isInline ? (
-							<code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">
+							<code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm">
 								{children}
 							</code>
 						) : (
@@ -70,12 +64,12 @@ export function MDXRenderer({
 						);
 					},
 					pre: ({ children }) => (
-						<pre className="bg-muted p-4 rounded-lg overflow-x-auto mb-4">
+						<pre className="mb-4 overflow-x-auto rounded-lg bg-muted p-4">
 							{children}
 						</pre>
 					),
 					blockquote: ({ children }) => (
-						<blockquote className="border-l-4 border-muted-foreground pl-4 italic my-4">
+						<blockquote className="my-4 border-muted-foreground border-l-4 pl-4 italic">
 							{children}
 						</blockquote>
 					),
@@ -94,4 +88,3 @@ export function MDXRenderer({
 		</div>
 	);
 }
-
