@@ -20,7 +20,19 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 	const transport = useMemo(
 		() =>
 			createDefaultHttpTransport({
-				baseURL: "http://localhost:3010",
+				api: {
+					sendMessage: "/api/chat",
+					fetchThreads: "/api/inngest/api/threads",
+					fetchHistory: "/api/inngest/api/history",
+					createThread: "/api/inngest/api/threads/create",
+					deleteThread: "/api/inngest/api/threads/delete",
+					approveToolCall: "/api/inngest/api/tool/approve",
+					getRealtimeToken: "/api/realtime/token"
+					// cancelRun: "/api/inngest/api/run/cancel",
+				},
+				// realtime: {
+				// 	token: "",
+				// },
 			}),
 		[],
 	);
@@ -28,7 +40,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 	return (
 		<AgentProvider
 			userId={userId}
-			transport={transport}
+			// transport={transport}
 		>
 			<ThemeProvider
 				attribute="class"
