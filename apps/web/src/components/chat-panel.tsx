@@ -1,12 +1,14 @@
 "use client";
 
+import { useAgent } from "@inngest/use-agent";
 import { Send } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MDXRenderer } from "@/lib/mdx-renderer";
 import { cn } from "@/lib/utils";
+import { useAgentStore } from "../stores/useAgentStore";
 
 interface Message {
 	id: string;
@@ -20,39 +22,48 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ className }: ChatPanelProps) {
-	const [messages, setMessages] = useState<Message[]>([
-		{
-			id: "1",
+	const agentUserId = useAgentStore((state) => state.agentUserId);
+	const { messages: agentMessages, sendMessage, status, error } = useAgent({ userId: agentUserId });
+	const [inputValue, setInputValue] = useState("");
+
+	const messages = useMemo<Message[]>(() => {
+		const welcomeMessage: Message = {
+			id: "welcome",
 			content:
 				"Hello! I'm your AI writing assistant. How can I help you today?",
 			role: "assistant",
-		},
-	]);
-	const [inputValue, setInputValue] = useState("");
-
-	const handleSend = () => {
-		if (!inputValue.trim()) return;
-
-		const userMessage: Message = {
-			id: Date.now().toString(),
-			content: inputValue,
-			role: "user",
 		};
 
-		setMessages((prev) => [...prev, userMessage]);
+		if (agentMessages.length === 0) {
+			return [welcomeMessage];
+		}
+
+		const mappedMessages = agentMessages.map((msg, index): Message => ({
+			id: msg.id ?? `msg-${index}`,
+			content:
+				typeof msg.content === "string"
+					? msg.content
+					: JSON.stringify(msg.content ?? ""),
+			role: msg.role === "user" ? "user" : "assistant",
+			format: "mdx",
+		}));
+
+
+		return [welcomeMessage, ...mappedMessages];
+	}, [agentMessages]);
+
+	const handleSend = async () => {
+		if (!inputValue.trim()) return;
+		if (status === "streaming") return;
+
+		const messageToSend = inputValue.trim();
 		setInputValue("");
 
-		// TODO: Add actual AI response logic here
-		// For now, just echo back a placeholder response
-		setTimeout(() => {
-			const assistantMessage: Message = {
-				id: (Date.now() + 1).toString(),
-				content:
-					"I received your message. AI response functionality will be implemented soon.",
-				role: "assistant",
-			};
-			setMessages((prev) => [...prev, assistantMessage]);
-		}, 500);
+		try {
+			await sendMessage(messageToSend);
+		} catch (err) {
+			console.error("Error sending message:", err);
+		}
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -95,6 +106,23 @@ export function ChatPanel({ className }: ChatPanelProps) {
 								</div>
 							</div>
 						))}
+						{status === "streaming" && (
+							<div className="flex w-full justify-start">
+								<div className="max-w-[80%] rounded-lg bg-muted px-4 py-2 text-sm text-muted-foreground">
+									<div className="flex items-center gap-2">
+										<div className="h-2 w-2 animate-pulse rounded-full bg-current" />
+										<span>Agent is thinking...</span>
+									</div>
+								</div>
+							</div>
+						)}
+						{error && (
+							<div className="flex w-full justify-start">
+								<div className="max-w-[80%] rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">
+									Error: {error.message || "An error occurred"}
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
 
@@ -106,11 +134,12 @@ export function ChatPanel({ className }: ChatPanelProps) {
 							onKeyDown={handleKeyDown}
 							placeholder="Type your message..."
 							className="flex-1"
+							disabled={status === "streaming"}
 						/>
 						<Button
 							onClick={handleSend}
 							size="icon"
-							disabled={!inputValue.trim()}
+							disabled={!inputValue.trim() || status === "streaming"}
 						>
 							<Send className="h-4 w-4" />
 							<span className="sr-only">Send message</span>

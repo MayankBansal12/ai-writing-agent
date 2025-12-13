@@ -27,6 +27,9 @@ importers:
       '@inngest/agent-kit':
         specifier: ^0.13.2
         version: 0.13.2(inngest@3.47.0(@opentelemetry/core@2.2.0(@opentelemetry/api@1.9.0))(express@5.2.1)(fastify@5.6.2)(next@16.0.8(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.2(react@19.1.2))(react@19.1.2))(typescript@5.9.3)(zod@4.1.13))(zod@4.1.13)
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
       dotenv:
         specifier: ^17.2.2
         version: 17.2.3
@@ -46,6 +49,9 @@ importers:
       '@types/bun':
         specifier: ^1.2.6
         version: 1.3.4
+      '@types/cors':
+        specifier: ^2.8.19
+        version: 2.8.19
       tsdown:
         specifier: ^0.16.5
         version: 0.16.8(typescript@5.9.3)
@@ -55,6 +61,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@inngest/use-agent':
+        specifier: ^0.4.0
+        version: 0.4.0(@opentelemetry/core@2.2.0(@opentelemetry/api@1.9.0))(express@5.2.1)(fastify@5.6.2)(next@16.0.8(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.2(react@19.1.2))(react@19.1.2))(react-dom@19.1.2(react@19.1.2))(react@19.1.2)(typescript@5.9.3)(uuid@9.0.1)
       '@mdx-js/react':
         specifier: ^3.1.1
         version: 3.1.1(@types/react@19.2.2)(react@19.1.2)
@@ -112,7 +121,13 @@ importers:
       tw-animate-css:
         specifier: ^1.3.4
         version: 1.4.0
+      zustand:
+        specifier: ^5.0.9
+        version: 5.0.9(@types/react@19.2.2)(react@19.1.2)(use-sync-external-store@1.6.0(react@19.1.2))
     devDependencies:
+      '@opentelemetry/core':
+        specifier: ^2.2.0
+        version: 2.2.0(@opentelemetry/api@1.9.0)
       '@tailwindcss/postcss':
         specifier: ^4.1.10
         version: 4.1.17
@@ -422,6 +437,18 @@ packages:
 
   '@inngest/ai@0.1.7':
     resolution: {integrity: sha512-5xWatW441jacGf9czKEZdgAmkvoy7GS2tp7X8GSbdGeRXzjisHR6vM+q8DQbv6rqRsmQoCQ5iShh34MguELvUQ==}
+
+  '@inngest/realtime@0.4.5':
+    resolution: {integrity: sha512-idT9MPazztBoTkxHIJMJ5oQUhY5P8/RLYtFZighmsTNRLJ/xTP7uAzh899nuorQeCVc+57yecjQ/52UZoIdrPQ==}
+    peerDependencies:
+      react: '>=18.0.0'
+
+  '@inngest/use-agent@0.4.0':
+    resolution: {integrity: sha512-59U8q8TotWdSuDLNWMfjxeNVPvw400/iNKxfoNZBXkNvxwyjF9xtOJyZzm8d46NcMrARdb/ErJzfTf16iPwbdw==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+      uuid: '>=9.0.0'
 
   '@jpwilliams/waitgroup@2.1.1':
     resolution: {integrity: sha512-0CxRhNfkvFCTLZBKGvKxY2FYtYW1yWhO2McLqBL0X5UWvYjIf9suH8anKW/DNutl369A75Ewyoh2iJMwBZ2tRg==}
@@ -2025,6 +2052,9 @@ packages:
 
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
+
+  '@types/cors@2.8.19':
+    resolution: {integrity: sha512-mFNylyeyqN93lfe/9CSxOGREz8cpzAhH+E93xJ4xWQf62V8sQ/24reV2nyzUWM6H6Xji+GGHpkbLe7pVoUEskg==}
 
   '@types/debug@4.1.12':
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
@@ -3705,6 +3735,24 @@ packages:
   zod@4.1.13:
     resolution: {integrity: sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig==}
 
+  zustand@5.0.9:
+    resolution: {integrity: sha512-ALBtUj0AfjJt3uNRQoL1tL2tMvj6Gp/6e39dnfT6uzpelGru8v1tPOGBzayOWbPJvujM8JojDk3E1LxeFisBNg==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      immer: '>=9.0.6'
+      react: '>=18.0.0'
+      use-sync-external-store: '>=1.2.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      immer:
+        optional: true
+      react:
+        optional: true
+      use-sync-external-store:
+        optional: true
+
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
@@ -3968,6 +4016,50 @@ snapshots:
     dependencies:
       '@types/node': 22.19.2
       typescript: 5.9.3
+
+  '@inngest/realtime@0.4.5(@opentelemetry/core@2.2.0(@opentelemetry/api@1.9.0))(express@5.2.1)(fastify@5.6.2)(next@16.0.8(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.2(react@19.1.2))(react@19.1.2))(react@19.1.2)(typescript@5.9.3)':
+    dependencies:
+      '@standard-schema/spec': 1.0.0
+      debug: 4.4.3
+      inngest: 3.47.0(@opentelemetry/core@2.2.0(@opentelemetry/api@1.9.0))(express@5.2.1)(fastify@5.6.2)(next@16.0.8(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.2(react@19.1.2))(react@19.1.2))(typescript@5.9.3)(zod@4.1.13)
+      react: 19.1.2
+      zod: 4.1.13
+    transitivePeerDependencies:
+      - '@opentelemetry/core'
+      - '@sveltejs/kit'
+      - '@vercel/node'
+      - aws-lambda
+      - encoding
+      - express
+      - fastify
+      - h3
+      - hono
+      - koa
+      - next
+      - supports-color
+      - typescript
+
+  '@inngest/use-agent@0.4.0(@opentelemetry/core@2.2.0(@opentelemetry/api@1.9.0))(express@5.2.1)(fastify@5.6.2)(next@16.0.8(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.2(react@19.1.2))(react@19.1.2))(react-dom@19.1.2(react@19.1.2))(react@19.1.2)(typescript@5.9.3)(uuid@9.0.1)':
+    dependencies:
+      '@inngest/realtime': 0.4.5(@opentelemetry/core@2.2.0(@opentelemetry/api@1.9.0))(express@5.2.1)(fastify@5.6.2)(next@16.0.8(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.2(react@19.1.2))(react@19.1.2))(react@19.1.2)(typescript@5.9.3)
+      '@tanstack/react-query': 5.90.12(react@19.1.2)
+      react: 19.1.2
+      react-dom: 19.1.2(react@19.1.2)
+      uuid: 9.0.1
+    transitivePeerDependencies:
+      - '@opentelemetry/core'
+      - '@sveltejs/kit'
+      - '@vercel/node'
+      - aws-lambda
+      - encoding
+      - express
+      - fastify
+      - h3
+      - hono
+      - koa
+      - next
+      - supports-color
+      - typescript
 
   '@jpwilliams/waitgroup@2.1.1': {}
 
@@ -5726,6 +5818,10 @@ snapshots:
       '@types/node': 20.19.26
 
   '@types/connect@3.4.38':
+    dependencies:
+      '@types/node': 20.19.26
+
+  '@types/cors@2.8.19':
     dependencies:
       '@types/node': 20.19.26
 
@@ -7734,5 +7830,11 @@ snapshots:
   zod@3.25.76: {}
 
   zod@4.1.13: {}
+
+  zustand@5.0.9(@types/react@19.2.2)(react@19.1.2)(use-sync-external-store@1.6.0(react@19.1.2)):
+    optionalDependencies:
+      '@types/react': 19.2.2
+      react: 19.1.2
+      use-sync-external-store: 1.6.0(react@19.1.2)
 
   zwitch@2.0.4: {}
