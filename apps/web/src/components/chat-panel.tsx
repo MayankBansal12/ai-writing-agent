@@ -1,12 +1,16 @@
 "use client";
 
-import { Send } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { MDXRenderer } from "@/lib/mdx-renderer";
 import { cn } from "@/lib/utils";
+import { ArrowUp, CheckLine, Copy, Square } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
+import { ChainOfThoughtReasoning } from "./chain-of-thought-reasoning";
+import { Message, MessageAction, MessageActions, MessageContent } from "./ui/message";
+import { PromptInput, PromptInputAction, PromptInputActions, PromptInputTextarea } from "./ui/prompt-input";
+import { PromptSuggestion } from "./ui/prompt-suggestion";
+import { SystemMessage } from "./ui/system-message";
 
 interface Message {
 	id: string;
@@ -15,23 +19,33 @@ interface Message {
 	format?: "mdx" | "plain";
 }
 
-interface ChatPanelProps {
-	className?: string;
+const assistantMessage1: Message = {
+	id: (Date.now() + 1).toString(),
+	content: `Here's your final document generated`,
+	role: "assistant",
+	format: "plain"
 }
 
-export function ChatPanel({ className }: ChatPanelProps) {
-	const [messages, setMessages] = useState<Message[]>([
-		{
-			id: "1",
-			content:
-				"Hello! I'm your AI writing assistant. How can I help you today?",
-			role: "assistant",
-		},
-	]);
-	const [inputValue, setInputValue] = useState("");
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-	const handleSend = () => {
+export function ChatPanel({ changeDocument }: { changeDocument: (content: string) => void }) {
+	const [messages, setMessages] = useState<Message[]>([]);
+	const [inputValue, setInputValue] = useState("");
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const [copied, setCopied] = useState(false)
+
+
+	const handleCopy = (content: string) => {
+		navigator.clipboard.writeText(content)
+		setCopied(true)
+		setTimeout(() => setCopied(false), 2000)
+	}
+
+	const handleSend = async () => {
 		if (!inputValue.trim()) return;
+		setIsLoading(true);
+		setError(null);
 
 		const userMessage: Message = {
 			id: Date.now().toString(),
@@ -40,83 +54,158 @@ export function ChatPanel({ className }: ChatPanelProps) {
 		};
 
 		setMessages((prev) => [...prev, userMessage]);
+		const promptValue = inputValue;
 		setInputValue("");
 
-		// TODO: Add actual AI response logic here
-		// For now, just echo back a placeholder response
-		setTimeout(() => {
-			const assistantMessage: Message = {
-				id: (Date.now() + 1).toString(),
-				content:
-					"I received your message. AI response functionality will be implemented soon.",
-				role: "assistant",
-			};
-			setMessages((prev) => [...prev, assistantMessage]);
-		}, 500);
-	};
+		try {
+			const response = await fetch(`${API_BASE_URL}/api/chat`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ userPrompt: promptValue }),
+			});
 
-	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Enter" && !e.shiftKey) {
-			e.preventDefault();
-			handleSend();
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({ error: "Failed to send message" }));
+				throw new Error(errorData.error || errorData.message || "Failed to send message");
+			}
+
+			const data = await response.json();
+			console.log("agent data: ", data)
+
+			if (!data || !data.success || !data.finalDocument) throw Error("")
+
+			const assistantMessage2: Message = {
+				id: (Date.now() + 1).toString(),
+				content: `${data.finalDocument}`,
+				role: "assistant",
+				format: "mdx",
+			};
+			setMessages((prev) => [...prev, assistantMessage1, assistantMessage2]);
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err?.message : "";
+			setError(errorMessage);
+		} finally {
+			setIsLoading(false)
 		}
 	};
 
 	return (
-		<Card className={cn("flex h-full flex-col", className)}>
+		<Card className="flex h-full flex-col">
 			<CardHeader>
 				<h2 className="font-semibold text-lg">Agent Chat</h2>
 			</CardHeader>
-			<CardContent className="flex flex-1 flex-col gap-4 overflow-hidden p-0">
-				<div className="flex-1 overflow-y-auto p-4">
-					<div className="flex flex-col gap-4">
-						{messages.map((message) => (
-							<div
-								key={message.id}
-								className={cn(
-									"flex w-full",
-									message.role === "user" ? "justify-end" : "justify-start",
-								)}
-							>
-								<div
-									className={cn(
-										"max-w-[80%] rounded-lg px-4 py-2 text-sm",
-										message.role === "user"
-											? "bg-primary text-primary-foreground"
-											: "bg-muted text-foreground",
-									)}
+			<CardContent className="flex flex-1 flex-col gap-4 justify-between overflow-hidden p-0">
+				<div className="w-full h-full flex flex-col gap-4 overflow-y-auto p-4">
+					{messages.length > 0 ? (
+						<AnimatePresence mode="popLayout">
+							{messages.map((message) => (
+								<motion.div
+									key={message.id}
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -10 }}
+									transition={{ duration: 0.3, ease: "easeOut" }}
+									className={cn("group flex w-full", message.role === "user" ? "justify-end" : "justify-start")}
 								>
-									<div className="[&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_p]:my-0">
-										<MDXRenderer
-											content={message.content}
-											isMDX={message.format !== "plain"}
-										/>
-									</div>
-								</div>
+									<Message>
+										<MessageContent markdown className={cn(message.role === "user" ? "bg-primary text-primary-foreground" : "bg-primary-foreground dark:bg-secondary-foreground")}>{message.content}</MessageContent>
+										<MessageActions className="self-end">
+											<MessageAction tooltip="Copy to clipboard">
+												<Button
+													variant="ghost"
+													size="icon"
+													className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100"
+													onClick={() => handleCopy(message.content)}
+												>
+													<Copy className={`size-4 ${copied ? "text-green-500" : ""}`} />
+												</Button>
+											</MessageAction>
+										</MessageActions>
+									</Message>
+								</motion.div>
+							))}
+						</AnimatePresence>
+					) : (
+						<div className="w-full h-full flex flex-col gap-6 justify-center items-center text-center">
+							<div className="flex flex-col gap-1">
+								<h2 className="text-xl font-medium">
+									Experiment your writings with
+									<span className="font-semibold"> Wavmo </span>
+								</h2>
+								<p className="text-sm text-accent-foreground/60">Use suggestions to get started or input your prompt below. <br /> Rate limits may be applied and it will def make mistakes.</p>
 							</div>
-						))}
-					</div>
+							<div className="w-[90%] min-w-sm flex flex-wrap gap-2 items-center">
+								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("Generate a short blog on a random topic")}>
+									Generate a short blog on a random topic
+								</PromptSuggestion>
+
+								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("Create an outline for a research paper on LLM tokenization")}>
+									Create an outline for a research paper on LLM tokenization
+								</PromptSuggestion>
+
+								<PromptSuggestion
+									size="lg"
+									highlight="true"
+									onClick={() => setInputValue("In 150 words, write an introduction explaining why context matters for AI agents.")}
+								>
+									In 150 words, write an introduction explaining why context matters for AI agents.
+								</PromptSuggestion>
+
+								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("Write a blog on how React works")}>
+									Write a blog on how React works
+								</PromptSuggestion>
+
+								<PromptSuggestion
+									size="lg"
+									highlight="true"
+									onClick={() => setInputValue("Defend name \"Wavmo\" is not taken from Waymo in <200 words")}
+								>
+									Defend name "Wavmo" is not taken from Waymo in &lt;200 words
+								</PromptSuggestion>
+							</div>
+						</div>
+					)}
+
+					{messages && messages[messages.length - 1]?.role === "assistant" && (
+						<Button size="sm" className="w-fit flex gap-2 self-end cursor-pointer" onClick={() => changeDocument(messages[messages?.length - 1]?.content)}>
+							<CheckLine className="size-4" />
+							Apply Changes
+						</Button>
+					)}
+
+					{isLoading && <ChainOfThoughtReasoning isLoading={isLoading} />}
+					{error && <SystemMessage variant="error" fill>{"Unable to generate response, seems like a error from our side, please try agin!"}</SystemMessage>}
 				</div>
 
-				<div className="border-t p-4">
-					<div className="flex gap-2">
-						<Input
-							value={inputValue}
-							onChange={(e) => setInputValue(e.target.value)}
-							onKeyDown={handleKeyDown}
-							placeholder="Type your message..."
-							className="flex-1"
-						/>
-						<Button
-							onClick={handleSend}
-							size="icon"
-							disabled={!inputValue.trim()}
+				<PromptInput
+					value={inputValue}
+					onValueChange={(value) => setInputValue(value)}
+					isLoading={isLoading}
+					onSubmit={handleSend}
+					className="w-[90%] min-w-sm m-4 mx-auto"
+				>
+					<PromptInputTextarea placeholder="Explain, Generate, review your documents..." />
+					<PromptInputActions className="justify-end pt-2">
+						<PromptInputAction
+							tooltip={isLoading ? "Stop generation" : "Send message"}
 						>
-							<Send className="h-4 w-4" />
-							<span className="sr-only">Send message</span>
-						</Button>
-					</div>
-				</div>
+							<Button
+								variant="default"
+								size="icon"
+								className="h-8 w-8 rounded-full"
+								onClick={handleSend}
+							>
+								{isLoading ? (
+									<Square className="size-5 fill-current" />
+								) : (
+									<ArrowUp className="size-5" />
+								)}
+							</Button>
+						</PromptInputAction>
+					</PromptInputActions>
+				</PromptInput>
 			</CardContent>
 		</Card>
 	);

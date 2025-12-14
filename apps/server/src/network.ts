@@ -19,6 +19,7 @@ import type {
 } from "./types";
 
 const groqConfig = {
+	stream: false,
 	apiKey: process.env.GROQ_API_KEY,
 	baseUrl: process.env.GROQ_BASE_URL || "https://api.groq.com/openai/v1/",
 };
@@ -190,7 +191,6 @@ export async function runWritingWorkflow(
 ): Promise<OrchestratorResult> {
 	const state = createState<WritingAgentState>({
 		userPrompt,
-		_agentStartTimes: {},
 	});
 
 	await writingNetwork.run(userPrompt, { state });
