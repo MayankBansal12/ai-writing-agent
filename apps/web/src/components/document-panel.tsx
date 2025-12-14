@@ -1,5 +1,8 @@
 "use client";
 
+import { PanelLeft, PanelLeftOpen } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 import { FormatToggle, type FormatType } from "@/components/format-toggle";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -8,9 +11,6 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MDXRenderer } from "@/lib/mdx-renderer";
-import { PanelLeft, PanelLeftOpen } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "./ui/button";
 
@@ -35,7 +35,10 @@ export function DocumentPanel({
 			<CardHeader className="flex flex-row items-center justify-between p-2">
 				<h2 className="px-2 font-semibold text-lg">Wavmo</h2>
 				<div className="flex items-center gap-2">
-					<FormatToggle format={isEditingMarkdown ? "mdx" : format} onFormatChange={setFormat} />
+					<FormatToggle
+						format={isEditingMarkdown ? "mdx" : format}
+						onFormatChange={setFormat}
+					/>
 					<ModeToggle />
 					<Tooltip>
 						<TooltipTrigger asChild>
@@ -74,24 +77,24 @@ export function DocumentPanel({
 					<textarea
 						value={content}
 						onChange={(e) => changeDocument(e.target.value)}
-						className="w-full h-full resize-none border-none outline-none bg-transparent font-mono text-sm whitespace-pre-wrap p-0 rounded-sm"
+						className="h-full w-full resize-none whitespace-pre-wrap rounded-sm border-none bg-transparent p-0 font-mono text-sm outline-none"
 						placeholder="Start editing your document..."
 					/>
 				) : (
-					<div className="w-full h-full overflow-y-auto relative">
+					<div className="relative h-full w-full overflow-y-auto">
 						{isEditingMarkdown ? (
 							<textarea
 								value={content}
 								onChange={(e) => changeDocument(e.target.value)}
 								onBlur={() => setIsEditingMarkdown(false)}
 								autoFocus
-								className="w-full h-full resize-none border-none outline-none bg-transparent font-mono text-sm whitespace-pre-wrap p-0 rounded-sm"
+								className="h-full w-full resize-none overflow-hidden whitespace-pre-wrap rounded-sm border-none bg-transparent p-0 font-mono text-sm outline-none"
 								placeholder="Start editing your document..."
 							/>
 						) : (
 							<div
 								onClick={() => setIsEditingMarkdown(true)}
-								className="w-full min-h-full cursor-text prose prose-sm max-w-none dark:prose-invert rounded-sm transition-all p-2 -m-2"
+								className="prose prose-sm dark:prose-invert -m-2 min-h-full w-full max-w-none cursor-text rounded-sm p-2 transition-all"
 							>
 								<MDXRenderer content={content} isMDX={false} />
 							</div>

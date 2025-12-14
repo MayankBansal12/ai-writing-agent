@@ -1,10 +1,19 @@
-# AI Writing Agent
+# Wavmo - AI Writing Agent
 
-An intelligent multi-agent system that helps you write better documents through a collaborative workflow of specialized AI agents. The system uses a chain of agents to plan, write, review, and improve documents based on your requirements.
+An AI Writing Agent that helps you write better documents. The system uses a network of agents to plan, write, review, and improve documents based on your requirements.
+
+
+## Demo
+<img src="https://5kas5z928t.ufs.sh/f/wBHVA4PQTleADjmboom4zTmgt2LeHUrOS9INl1qQRxADv6dM" width="400px" />
+
+<br />
+
+- [View Explanation Here](https://www.loom.com/share/326bbc9a5c194182beb18406825375df)
+- [Flow Diagram](https://excalidraw.com/#json=lIvnB6TcVPxj94zeDgBKA,azRy62HdfeNaQJADn-H9Ig)
 
 ## Overview
 
-The AI Writing Agent orchestrates multiple specialized agents that work together to create high-quality documents. Each agent has a specific role in the writing process, ensuring comprehensive planning, quality writing, thorough review, and continuous improvement.
+The Agent orchestrates multiple agents that work together to create high-quality documents. Each agent has a specific role in the writing process, ensuring planning, writing, review, and improvement.
 
 ## Architecture
 
@@ -14,7 +23,6 @@ The system consists of four main agents working in sequence:
 
 - Generates a comprehensive plan for the document
 - Determines tone, writing style, and preferences
-- Lists any assets that will be generated
 - Provides a structured outline for the document
 - Extracts intent, requirements, and constraints from user prompts
 - Optionally suggests search queries for research
@@ -22,7 +30,6 @@ The system consists of four main agents working in sequence:
 ### 2. **Writing Agent** (Model: Groq Compound)
 
 - Writes the actual document content based on the plan
-- Includes code for any Mermaid diagrams
 - Generates MDX-compatible content with proper structure
 - Follows the tone and style specified in the plan
 
@@ -38,7 +45,6 @@ The system consists of four main agents working in sequence:
 
 - Generates the final writing after fixing all issues identified by the Review Agent
 - Makes targeted improvements without major structural changes
-- Produces the polished final document
 
 ## Workflow
 
@@ -56,18 +62,12 @@ Improvement Agent (fixes issues, produces final document)
 Final Document
 ```
 
-### Future Enhancements (Planned)
-
-The system is designed to support additional capabilities:
-
-- **Web Search Tool**: Fetch latest information about topics for research
-- **Image Generation Agent**: Generate visual assets for documents (up to 3 assets per document with separate prompts)
-
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js (v18 or higher)
+- Bun.js
 - pnpm (v10.10.0 or higher)
 
 ### Installation
@@ -80,6 +80,7 @@ pnpm install
 
 ### Environment Variables
 
+- For Server
 Create a `.env` file in the `apps/server` directory with the following variables:
 
 ```env
@@ -87,6 +88,13 @@ GROQ_API_KEY=your_groq_api_key
 GROQ_BASE_URL=https://api.groq.com/openai/v1/
 PORT=8000
 CORS_ORIGIN=http://localhost:3001
+```
+
+- For Client
+Create a `.env` file in the `apps/web` directory with the following variables:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 ### Running the Application

@@ -1,5 +1,5 @@
-import { Inngest } from "inngest";
 import { createState } from "@inngest/agent-kit";
+import { Inngest } from "inngest";
 import { writingNetwork } from "./network";
 import type { WritingAgentState } from "./types";
 
@@ -14,7 +14,13 @@ export const agentRunFunction = inngestClient.createFunction(
 		name: "Writing Agent Run",
 	},
 	{ event: "agent/run" },
-	async ({ event, step }: { event: { data: { userPrompt: string } }; step: any }) => {
+	async ({
+		event,
+		step,
+	}: {
+		event: { data: { userPrompt: string } };
+		step: any;
+	}) => {
 		const { userPrompt } = event.data;
 		const result = await step.run("run-writing-network", async () => {
 			const state = createState<WritingAgentState>({
@@ -22,10 +28,10 @@ export const agentRunFunction = inngestClient.createFunction(
 			});
 
 			try {
-				console.info("starting network run")
+				console.info("starting network run");
 				await writingNetwork.run(userPrompt, { state });
 			} catch (error) {
-				console.error("error: ", error)
+				console.error("error: ", error);
 				throw error;
 			}
 

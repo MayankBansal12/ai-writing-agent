@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "ai-writing-agent",
-	description: "ai-writing-agent",
+	title: "Wavmo Playground - AI Writing Agent",
+	description:
+		"It's a playground for experimenting with the Wavmo AI Writing Agent. Try it out and see how it works by generating a document.",
 };
 
 export default function RootLayout({

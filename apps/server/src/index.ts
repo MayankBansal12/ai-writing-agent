@@ -33,7 +33,7 @@ fastify.post("/api/chat", async (request, reply) => {
 			});
 		}
 
-		const agentResponse = await runWritingWorkflow(userPrompt)
+		const agentResponse = await runWritingWorkflow(userPrompt);
 		if (!agentResponse) {
 			return reply.status(500).send({
 				error: "",
@@ -54,8 +54,8 @@ fastify.get("/health", async () => {
 	return "Server is healthy!";
 });
 
-const host = ("RENDER" in process.env) ? `0.0.0.0` : `localhost`;
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8000;
+const host = "RENDER" in process.env ? "0.0.0.0" : "localhost";
+const PORT = process.env.PORT ? Number.parseInt(process.env.PORT) : 8000;
 fastify.listen({ host, port: PORT }, (err, address) => {
 	if (err) {
 		fastify.log.error(err);
