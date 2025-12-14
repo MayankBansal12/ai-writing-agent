@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { ArrowUp, Square } from "lucide-react";
 import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { ChainOfThoughtReasoning } from "./chain-of-thought-reasoning";
 import { Message, MessageContent } from "./ui/message";
 import { PromptInput, PromptInputAction, PromptInputActions, PromptInputTextarea } from "./ui/prompt-input";
@@ -44,7 +45,7 @@ export function ChatPanel() {
 			};
 			setMessages((prev) => [...prev, assistantMessage]);
 			setIsLoading(false);
-		}, 5000);
+		}, 20000);
 	};
 
 	return (
@@ -55,11 +56,22 @@ export function ChatPanel() {
 			<CardContent className="flex flex-1 flex-col gap-4 justify-between overflow-hidden p-0">
 				<div className="w-full h-full flex flex-col gap-4 overflow-y-auto p-4">
 					{messages.length > 0 ? (
-						messages.map((message) => (
-							<Message key={message.id} className={cn("flex w-full", message.role === "user" ? "justify-end" : "justify-start")}>
-								<MessageContent markdown className={cn(message.role === "user" ? "bg-primary text-primary-foreground max-w-4/5" : "bg-primary-foreground dark:bg-secondary-foreground")}>{message.content}</MessageContent>
-							</Message>
-						))
+						<AnimatePresence mode="popLayout">
+							{messages.map((message) => (
+								<motion.div
+									key={message.id}
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -10 }}
+									transition={{ duration: 0.3, ease: "easeOut" }}
+									className={cn("flex w-full", message.role === "user" ? "justify-end" : "justify-start")}
+								>
+									<Message>
+										<MessageContent markdown className={cn(message.role === "user" ? "bg-primary text-primary-foreground" : "bg-primary-foreground dark:bg-secondary-foreground")}>{message.content}</MessageContent>
+									</Message>
+								</motion.div>
+							))}
+						</AnimatePresence>
 					) : (
 						<div className="w-full h-full flex flex-col gap-6 justify-center items-center text-center">
 							<div className="flex flex-col gap-1">
@@ -70,30 +82,30 @@ export function ChatPanel() {
 								<p className="text-sm text-accent-foreground/60">Use suggestions to get started or input your prompt below. <br /> Rate limits may be applied and it will def make mistakes.</p>
 							</div>
 							<div className="w-[90%] min-w-sm flex flex-wrap gap-2 items-center">
-								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("Tell me a joke")}>
+								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("Generate a short blog on a random topic")}>
 									Generate a short blog on a random topic
 								</PromptSuggestion>
 
-								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("Write a poem")}>
+								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("Create an outline for a research paper on LLM tokenization")}>
 									Create an outline for a research paper on LLM tokenization
 								</PromptSuggestion>
 
 								<PromptSuggestion
 									size="lg"
 									highlight="true"
-									onClick={() => setInputValue("Code a React component")}
+									onClick={() => setInputValue("In 150 words, write an introduction explaining why context matters for AI agents.")}
 								>
 									In 150 words, write an introduction explaining why context matters for AI agents.
 								</PromptSuggestion>
 
-								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("How does this work?")}>
+								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("Write a blog on how React works")}>
 									Write a blog on how React works
 								</PromptSuggestion>
 
 								<PromptSuggestion
 									size="lg"
 									highlight="true"
-									onClick={() => setInputValue("Generate an image of a cat")}
+									onClick={() => setInputValue("Defend name \"Wavmo\" is not taken from Waymo in <200 words")}
 								>
 									Defend name "Wavmo" is not taken from Waymo in &lt;200 words
 								</PromptSuggestion>
@@ -101,7 +113,7 @@ export function ChatPanel() {
 						</div>
 					)}
 
-					{isLoading && <ChainOfThoughtReasoning />}
+					{isLoading && <ChainOfThoughtReasoning isLoading={isLoading} />}
 				</div>
 
 				<PromptInput
