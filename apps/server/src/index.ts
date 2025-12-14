@@ -1,10 +1,9 @@
-import "dotenv/config";
 import fastifyCors from "@fastify/cors";
-import { createServer } from "@inngest/agent-kit/server";
-import { runWritingWorkflow, writingNetwork } from "./network";
+import "dotenv/config";
 import Fastify from "fastify";
 import { fastifyPlugin } from "inngest/fastify";
-import { inngestClient, agentRunFunction } from "./inngest";
+import { agentRunFunction, inngestClient } from "./inngest";
+import { runWritingWorkflow } from "./network";
 
 const baseCorsConfig = {
 	origin: process.env.CORS_ORIGIN || "",
@@ -64,8 +63,8 @@ fastify.listen({ port: PORT }, (err, address) => {
 	console.log(`Server listening at ${address}`);
 });
 
-const server = createServer({
-	networks: [writingNetwork],
-});
+// const server = createServer({
+// 	networks: [writingNetwork],
+// });
 
-server.listen(3010, () => console.log("Agent kit running!"));
+// server.listen(3010, () => console.log("Agent kit running!"));
