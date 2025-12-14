@@ -16,6 +16,8 @@ body {
 	@media (prefers-color-scheme: dark) {
 		color-scheme: dark;
 	}
+
+	scroll-behavior: smooth;
 }
 
 :root {
@@ -207,7 +209,30 @@ body {
 	0% {
 		background-position: -200% center;
 	}
+
 	100% {
 		background-position: 200% center;
 	}
+}
+
+::selection {
+	background-color: var(--primary);
+	color: var(--secondary);
+}
+
+::-moz-selection {
+	background-color: var(--primary);
+	color: var(--secondary);
+}
+
+* {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
+	background: transparent;
 }

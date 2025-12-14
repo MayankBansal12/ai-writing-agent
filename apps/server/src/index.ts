@@ -33,7 +33,7 @@ fastify.post("/api/chat", async (request, reply) => {
 			});
 		}
 
-		const agentResponse = await runWritingWorkflow(userPrompt)
+		const agentResponse = await runWritingWorkflow(userPrompt);
 		if (!agentResponse) {
 			return reply.status(500).send({
 				error: "",

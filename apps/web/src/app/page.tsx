@@ -10,7 +10,8 @@ import {
 import { ChatPanel } from "@/components/chat-panel";
 import { DocumentPanel } from "@/components/document-panel";
 
-const welcomeText = `# Welcome to Wavmo \n\n An AI Agent that helps you write better documents. Get started using the Agent Chat on the right side.`
+const welcomeText =
+	"# Welcome to Wavmo \n\n An AI Agent that helps you write better documents. Get started using the Agent Chat on the right side.";
 
 export default function Home() {
 	const [isChatOpen, setIsChatOpen] = useState(true);
@@ -20,7 +21,7 @@ export default function Home() {
 
 	const handleDocumentChange = (content: string) => {
 		setContent(content);
-	}
+	};
 
 	const handleToggleChat = () => {
 		setIsChatOpen((isChatOpen) => !isChatOpen);
