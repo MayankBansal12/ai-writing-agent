@@ -5,18 +5,18 @@ export function createImprovementPrompt(
 	review: WritingReview,
 ): string {
 	const reviewSummary = [
-		review.issues.length ? `Issues: ${review.issues.join("; ")}` : "",
-		review.missing_elements.length
-			? `Missing: ${review.missing_elements.join("; ")}`
+		review?.issues.length ? `Issues: ${review?.issues?.join("; ")}` : "",
+		review?.missing_elements?.length
+			? `Missing: ${review?.missing_elements?.join("; ")}`
 			: "",
-		review.tone_mismatches.length
-			? `Tone issues: ${review.tone_mismatches.join("; ")}`
+		review?.tone_mismatches?.length
+			? `Tone issues: ${review?.tone_mismatches?.join("; ")}`
 			: "",
-		review.structural_problems.length
-			? `Structure: ${review.structural_problems.join("; ")}`
+		review?.structural_problems?.length
+			? `Structure: ${review?.structural_problems?.join("; ")}`
 			: "",
-		review.suggested_improvements.length
-			? `Improvements: ${review.suggested_improvements.join("; ")}`
+		review?.suggested_improvements?.length
+			? `Improvements: ${review?.suggested_improvements?.join("; ")}`
 			: "",
 	]
 		.filter(Boolean)

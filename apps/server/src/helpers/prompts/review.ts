@@ -4,11 +4,11 @@ export function createReviewPrompt(plan: WritingPlan, draft: string): string {
 	return `You are the Review Agent. Critically evaluate the draft based on the plan.
 
 PLAN CONTEXT:
-- Intent: ${plan.intent}
-- Requirements: ${plan.requirements}
-- Outline: ${plan.outline}
-- Tone: ${plan.tone}
-- Constraints: ${plan.constraints}
+- Intent: ${plan?.intent}
+- Requirements: ${plan?.requirements}
+- Outline: ${plan?.outline}
+- Tone: ${plan?.tone}
+- Constraints: ${plan?.constraints}
 
 DRAFT TO REVIEW:
 ${draft}

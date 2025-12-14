@@ -4,11 +4,11 @@ export function createWritingPrompt(plan: WritingPlan): string {
 	return `You are the Writing Agent. Generate a complete, coherent draft based on the provided plan.
 
 PLAN CONTEXT:
-- Intent: ${plan.intent}
-- Requirements: ${plan.requirements}
-- Outline: ${plan.outline}
-- Tone: ${plan.tone}
-- Constraints: ${plan.constraints}
+- Intent: ${plan?.intent}
+- Requirements: ${plan?.requirements}
+- Outline: ${plan?.outline}
+- Tone: ${plan?.tone}
+- Constraints: ${plan?.constraints}
 
 INSTRUCTIONS:
 - Follow the outline strictly
