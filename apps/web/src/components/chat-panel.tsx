@@ -3,13 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { ArrowUp, Square } from "lucide-react";
-import { useState } from "react";
+import { ArrowUp, CheckLine, Copy, Square } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 import { ChainOfThoughtReasoning } from "./chain-of-thought-reasoning";
-import { Message, MessageContent } from "./ui/message";
+import { Message, MessageAction, MessageActions, MessageContent } from "./ui/message";
 import { PromptInput, PromptInputAction, PromptInputActions, PromptInputTextarea } from "./ui/prompt-input";
 import { PromptSuggestion } from "./ui/prompt-suggestion";
+import { SystemMessage } from "./ui/system-message";
 
 interface Message {
 	id: string;
@@ -18,14 +19,33 @@ interface Message {
 	format?: "mdx" | "plain";
 }
 
-export function ChatPanel() {
+const assistantMessage1: Message = {
+	id: (Date.now() + 1).toString(),
+	content: `Here's your final document generated`,
+	role: "assistant",
+	format: "plain"
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+export function ChatPanel({ changeDocument }: { changeDocument: (content: string) => void }) {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [inputValue, setInputValue] = useState("");
-	const [isLoading, setIsLoading] = useState(false)
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const [copied, setCopied] = useState(false)
 
-	const handleSend = () => {
+
+	const handleCopy = (content: string) => {
+		navigator.clipboard.writeText(content)
+		setCopied(true)
+		setTimeout(() => setCopied(false), 2000)
+	}
+
+	const handleSend = async () => {
 		if (!inputValue.trim()) return;
 		setIsLoading(true);
+		setError(null);
 
 		const userMessage: Message = {
 			id: Date.now().toString(),
@@ -34,18 +54,41 @@ export function ChatPanel() {
 		};
 
 		setMessages((prev) => [...prev, userMessage]);
+		const promptValue = inputValue;
 		setInputValue("");
 
-		setTimeout(() => {
-			const assistantMessage: Message = {
+		try {
+			const response = await fetch(`${API_BASE_URL}/api/chat`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ userPrompt: promptValue }),
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({ error: "Failed to send message" }));
+				throw new Error(errorData.error || errorData.message || "Failed to send message");
+			}
+
+			const data = await response.json();
+			console.log("agent data: ", data)
+
+			if (!data || !data.success || !data.finalDocument) throw Error("")
+
+			const assistantMessage2: Message = {
 				id: (Date.now() + 1).toString(),
-				content:
-					"I received your message. AI response functionality will be implemented soon.",
+				content: `${data.finalDocument}`,
 				role: "assistant",
+				format: "mdx",
 			};
-			setMessages((prev) => [...prev, assistantMessage]);
-			setIsLoading(false);
-		}, 20000);
+			setMessages((prev) => [...prev, assistantMessage1, assistantMessage2]);
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err?.message : "";
+			setError(errorMessage);
+		} finally {
+			setIsLoading(false)
+		}
 	};
 
 	return (
@@ -64,10 +107,22 @@ export function ChatPanel() {
 									animate={{ opacity: 1, y: 0 }}
 									exit={{ opacity: 0, y: -10 }}
 									transition={{ duration: 0.3, ease: "easeOut" }}
-									className={cn("flex w-full", message.role === "user" ? "justify-end" : "justify-start")}
+									className={cn("group flex w-full", message.role === "user" ? "justify-end" : "justify-start")}
 								>
 									<Message>
 										<MessageContent markdown className={cn(message.role === "user" ? "bg-primary text-primary-foreground" : "bg-primary-foreground dark:bg-secondary-foreground")}>{message.content}</MessageContent>
+										<MessageActions className="self-end">
+											<MessageAction tooltip="Copy to clipboard">
+												<Button
+													variant="ghost"
+													size="icon"
+													className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100"
+													onClick={() => handleCopy(message.content)}
+												>
+													<Copy className={`size-4 ${copied ? "text-green-500" : ""}`} />
+												</Button>
+											</MessageAction>
+										</MessageActions>
 									</Message>
 								</motion.div>
 							))}
@@ -113,7 +168,15 @@ export function ChatPanel() {
 						</div>
 					)}
 
+					{messages && messages[messages.length - 1]?.role === "assistant" && (
+						<Button size="sm" className="w-fit flex gap-2 self-end cursor-pointer" onClick={() => changeDocument(messages[messages?.length - 1]?.content)}>
+							<CheckLine className="size-4" />
+							Apply Changes
+						</Button>
+					)}
+
 					{isLoading && <ChainOfThoughtReasoning isLoading={isLoading} />}
+					{error && <SystemMessage variant="error" fill>{"Unable to generate response, seems like a error from our side, please try agin!"}</SystemMessage>}
 				</div>
 
 				<PromptInput

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import fastifyCors from "@fastify/cors";
 import { createServer } from "@inngest/agent-kit/server";
-import { writingNetwork } from "./network";
+import { runWritingWorkflow, writingNetwork } from "./network";
 import Fastify from "fastify";
 import { fastifyPlugin } from "inngest/fastify";
 import { inngestClient, agentRunFunction } from "./inngest";
@@ -34,14 +34,14 @@ fastify.post("/api/chat", async (request, reply) => {
 			});
 		}
 
-		const { ids } = await inngestClient.send({
-			name: "agent-kit/network-writing-agent-network",
-			data: { input: userPrompt },
-		});
-		return {
-			runId: ids[0],
-			status: "queued",
-		};
+		const agentResponse = await runWritingWorkflow(userPrompt)
+		if (!agentResponse) {
+			return reply.status(500).send({
+				error: "",
+			});
+		}
+
+		return agentResponse;
 	} catch (error) {
 		fastify.log.error(error);
 		return reply.status(500).send({
@@ -67,4 +67,5 @@ fastify.listen({ port: PORT }, (err, address) => {
 const server = createServer({
 	networks: [writingNetwork],
 });
+
 server.listen(3010, () => console.log("Agent kit running!"));

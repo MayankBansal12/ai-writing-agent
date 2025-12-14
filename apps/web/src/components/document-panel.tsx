@@ -1,8 +1,5 @@
 "use client";
 
-import { PanelLeft, PanelLeftOpen } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
 import { FormatToggle, type FormatType } from "@/components/format-toggle";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -11,23 +8,25 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MDXRenderer } from "@/lib/mdx-renderer";
+import { PanelLeft, PanelLeftOpen } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "./ui/button";
-import { useRef, useEffect } from "react";
-import { Markdown } from "./ui/markdown";
 
 interface DocumentPanelProps {
 	isChatOpen: boolean;
+	content: string;
+	changeDocument: (content: string) => void;
 	onToggleChat: () => void;
 }
 
-const welcomeText = `# Welcome to Wavmo \n\n An AI Agent that helps you write better documents. Get started using the Agent Chat on the right side.`
-
 export function DocumentPanel({
+	content,
+	changeDocument,
 	isChatOpen,
 	onToggleChat,
 }: DocumentPanelProps) {
-	const [content, setContent] = useState(welcomeText);
 	const [format, setFormat] = useState<FormatType>("mdx");
 	const [isEditingMarkdown, setIsEditingMarkdown] = useState(false);
 
@@ -74,7 +73,7 @@ export function DocumentPanel({
 				{format === "mdx" ? (
 					<textarea
 						value={content}
-						onChange={(e) => setContent(e.target.value)}
+						onChange={(e) => changeDocument(e.target.value)}
 						className="w-full h-full resize-none border-none outline-none bg-transparent font-mono text-sm whitespace-pre-wrap p-0 rounded-sm"
 						placeholder="Start editing your document..."
 					/>
@@ -83,7 +82,7 @@ export function DocumentPanel({
 						{isEditingMarkdown ? (
 							<textarea
 								value={content}
-								onChange={(e) => setContent(e.target.value)}
+								onChange={(e) => changeDocument(e.target.value)}
 								onBlur={() => setIsEditingMarkdown(false)}
 								autoFocus
 								className="w-full h-full resize-none border-none outline-none bg-transparent font-mono text-sm whitespace-pre-wrap p-0 rounded-sm"
@@ -94,7 +93,7 @@ export function DocumentPanel({
 								onClick={() => setIsEditingMarkdown(true)}
 								className="w-full min-h-full cursor-text prose prose-sm max-w-none dark:prose-invert rounded-sm transition-all p-2 -m-2"
 							>
-								<Markdown>{content}</Markdown>
+								<MDXRenderer content={content} isMDX={false} />
 							</div>
 						)}
 					</div>

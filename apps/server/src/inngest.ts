@@ -17,13 +17,16 @@ export const agentRunFunction = inngestClient.createFunction(
 	async ({ event, step }: { event: { data: { userPrompt: string } }; step: any }) => {
 		const { userPrompt } = event.data;
 		const result = await step.run("run-writing-network", async () => {
-			const state = createState<WritingAgentState>();
+			const state = createState<WritingAgentState>({
+				userPrompt,
+			});
 
 			try {
 				console.info("starting network run")
-				await writingNetwork.run(userPrompt);
+				await writingNetwork.run(userPrompt, { state });
 			} catch (error) {
 				console.error("error: ", error)
+				throw error;
 			}
 
 			return {
