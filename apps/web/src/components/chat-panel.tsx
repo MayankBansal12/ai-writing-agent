@@ -1,12 +1,14 @@
 "use client";
 
-import { Send } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { MDXRenderer } from "@/lib/mdx-renderer";
 import { cn } from "@/lib/utils";
+import { ArrowUp, Square } from "lucide-react";
+import { useState } from "react";
+import { ChainOfThoughtReasoning } from "./chain-of-thought-reasoning";
+import { Message, MessageContent } from "./ui/message";
+import { PromptInput, PromptInputAction, PromptInputActions, PromptInputTextarea } from "./ui/prompt-input";
+import { PromptSuggestion } from "./ui/prompt-suggestion";
 
 interface Message {
 	id: string;
@@ -15,23 +17,14 @@ interface Message {
 	format?: "mdx" | "plain";
 }
 
-interface ChatPanelProps {
-	className?: string;
-}
-
-export function ChatPanel({ className }: ChatPanelProps) {
-	const [messages, setMessages] = useState<Message[]>([
-		{
-			id: "1",
-			content:
-				"Hello! I'm your AI writing assistant. How can I help you today?",
-			role: "assistant",
-		},
-	]);
+export function ChatPanel() {
+	const [messages, setMessages] = useState<Message[]>([]);
 	const [inputValue, setInputValue] = useState("");
+	const [isLoading, setIsLoading] = useState(false)
 
 	const handleSend = () => {
 		if (!inputValue.trim()) return;
+		setIsLoading(true);
 
 		const userMessage: Message = {
 			id: Date.now().toString(),
@@ -42,8 +35,6 @@ export function ChatPanel({ className }: ChatPanelProps) {
 		setMessages((prev) => [...prev, userMessage]);
 		setInputValue("");
 
-		// TODO: Add actual AI response logic here
-		// For now, just echo back a placeholder response
 		setTimeout(() => {
 			const assistantMessage: Message = {
 				id: (Date.now() + 1).toString(),
@@ -52,71 +43,94 @@ export function ChatPanel({ className }: ChatPanelProps) {
 				role: "assistant",
 			};
 			setMessages((prev) => [...prev, assistantMessage]);
-		}, 500);
-	};
-
-	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Enter" && !e.shiftKey) {
-			e.preventDefault();
-			handleSend();
-		}
+			setIsLoading(false);
+		}, 5000);
 	};
 
 	return (
-		<Card className={cn("flex h-full flex-col", className)}>
+		<Card className="flex h-full flex-col">
 			<CardHeader>
 				<h2 className="font-semibold text-lg">Agent Chat</h2>
 			</CardHeader>
-			<CardContent className="flex flex-1 flex-col gap-4 overflow-hidden p-0">
-				<div className="flex-1 overflow-y-auto p-4">
-					<div className="flex flex-col gap-4">
-						{messages.map((message) => (
-							<div
-								key={message.id}
-								className={cn(
-									"flex w-full",
-									message.role === "user" ? "justify-end" : "justify-start",
-								)}
-							>
-								<div
-									className={cn(
-										"max-w-[80%] rounded-lg px-4 py-2 text-sm",
-										message.role === "user"
-											? "bg-primary text-primary-foreground"
-											: "bg-muted text-foreground",
-									)}
-								>
-									<div className="[&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_p]:my-0">
-										<MDXRenderer
-											content={message.content}
-											isMDX={message.format !== "plain"}
-										/>
-									</div>
-								</div>
+			<CardContent className="flex flex-1 flex-col gap-4 justify-between overflow-hidden p-0">
+				<div className="w-full h-full flex flex-col gap-4 overflow-y-auto p-4">
+					{messages.length > 0 ? (
+						messages.map((message) => (
+							<Message key={message.id} className={cn("flex w-full", message.role === "user" ? "justify-end" : "justify-start")}>
+								<MessageContent markdown className={cn(message.role === "user" ? "bg-primary text-primary-foreground max-w-4/5" : "bg-primary-foreground dark:bg-secondary-foreground")}>{message.content}</MessageContent>
+							</Message>
+						))
+					) : (
+						<div className="w-full h-full flex flex-col gap-6 justify-center items-center text-center">
+							<div className="flex flex-col gap-1">
+								<h2 className="text-xl font-medium">
+									Experiment your writings with
+									<span className="font-semibold"> Wavmo </span>
+								</h2>
+								<p className="text-sm text-accent-foreground/60">Use suggestions to get started or input your prompt below. <br /> Rate limits may be applied and it will def make mistakes.</p>
 							</div>
-						))}
-					</div>
+							<div className="w-[90%] min-w-sm flex flex-wrap gap-2 items-center">
+								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("Tell me a joke")}>
+									Generate a short blog on a random topic
+								</PromptSuggestion>
+
+								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("Write a poem")}>
+									Create an outline for a research paper on LLM tokenization
+								</PromptSuggestion>
+
+								<PromptSuggestion
+									size="lg"
+									highlight="true"
+									onClick={() => setInputValue("Code a React component")}
+								>
+									In 150 words, write an introduction explaining why context matters for AI agents.
+								</PromptSuggestion>
+
+								<PromptSuggestion size="lg" highlight="true" onClick={() => setInputValue("How does this work?")}>
+									Write a blog on how React works
+								</PromptSuggestion>
+
+								<PromptSuggestion
+									size="lg"
+									highlight="true"
+									onClick={() => setInputValue("Generate an image of a cat")}
+								>
+									Defend name "Wavmo" is not taken from Waymo in &lt;200 words
+								</PromptSuggestion>
+							</div>
+						</div>
+					)}
+
+					{isLoading && <ChainOfThoughtReasoning />}
 				</div>
 
-				<div className="border-t p-4">
-					<div className="flex gap-2">
-						<Input
-							value={inputValue}
-							onChange={(e) => setInputValue(e.target.value)}
-							onKeyDown={handleKeyDown}
-							placeholder="Type your message..."
-							className="flex-1"
-						/>
-						<Button
-							onClick={handleSend}
-							size="icon"
-							disabled={!inputValue.trim()}
+				<PromptInput
+					value={inputValue}
+					onValueChange={(value) => setInputValue(value)}
+					isLoading={isLoading}
+					onSubmit={handleSend}
+					className="w-[90%] min-w-sm m-4 mx-auto"
+				>
+					<PromptInputTextarea placeholder="Explain, Generate, review your documents..." />
+					<PromptInputActions className="justify-end pt-2">
+						<PromptInputAction
+							tooltip={isLoading ? "Stop generation" : "Send message"}
 						>
-							<Send className="h-4 w-4" />
-							<span className="sr-only">Send message</span>
-						</Button>
-					</div>
-				</div>
+							<Button
+								variant="default"
+								size="icon"
+								className="h-8 w-8 rounded-full"
+								onClick={handleSend}
+							>
+								{isLoading ? (
+									<Square className="size-5 fill-current" />
+								) : (
+									<ArrowUp className="size-5" />
+								)}
+							</Button>
+						</PromptInputAction>
+					</PromptInputActions>
+				</PromptInput>
 			</CardContent>
 		</Card>
 	);

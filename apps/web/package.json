@@ -9,6 +9,9 @@
 	},
 	"dependencies": {
 		"@mdx-js/react": "^3.1.1",
+		"@radix-ui/react-avatar": "^1.1.11",
+		"@radix-ui/react-collapsible": "^1.1.12",
+		"@radix-ui/react-slot": "^1.2.4",
 		"@radix-ui/react-tooltip": "^1.2.8",
 		"@tanstack/react-form": "^1.12.3",
 		"@tanstack/react-query": "^5.85.5",
@@ -16,6 +19,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"lucide-react": "^0.546.0",
+		"marked": "^17.0.1",
 		"motion": "^12.23.26",
 		"next": "^16.0.7",
 		"next-themes": "^0.4.6",
@@ -24,6 +28,9 @@
 		"react-dom": "19.1.2",
 		"react-markdown": "^10.1.0",
 		"react-resizable-panels": "^3.0.6",
+		"remark-breaks": "^4.0.0",
+		"remark-gfm": "^4.0.1",
+		"shiki": "^3.20.0",
 		"sonner": "^2.0.5",
 		"tailwind-merge": "^3.3.1",
 		"tw-animate-css": "^1.3.4"

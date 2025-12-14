@@ -59,7 +59,7 @@ export default function Home() {
 				>
 					{isChatOpen && (
 						<div className="h-full w-full overflow-hidden pl-1">
-							<ChatPanel className="h-full" />
+							<ChatPanel />
 						</div>
 					)}
 				</Panel>
