@@ -12,19 +12,41 @@ import { PromptInput, PromptInputAction, PromptInputActions, PromptInputTextarea
 import { PromptSuggestion } from "./ui/prompt-suggestion";
 import { SystemMessage } from "./ui/system-message";
 
+interface WritingAgentState {
+	userPrompt: string;
+	plan?: {
+		intent: string;
+		requirements: string;
+		outline: string;
+		tone: string;
+		constraints: string;
+		optional_search_queries?: string[];
+	};
+	draft?: string;
+	review?: {
+		issues: string[];
+		missing_elements: string[];
+		tone_mismatches: string[];
+		structural_problems: string[];
+		suggested_improvements: string[];
+	};
+	finalDocument?: string;
+}
+
 interface Message {
 	id: string;
 	content: string;
 	role: "user" | "assistant";
 	format?: "mdx" | "plain";
+	stateData?: WritingAgentState;
 }
 
-const assistantMessage1: Message = {
-	id: (Date.now() + 1).toString(),
-	content: `Here's your final document generated`,
-	role: "assistant",
-	format: "plain"
-}
+// const assistantMessage1: Message = {
+// 	id: (Date.now() + 1).toString(),
+// 	content: `Here's your final document generated`,
+// 	role: "assistant",
+// 	format: "plain"
+// }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -76,13 +98,14 @@ export function ChatPanel({ changeDocument }: { changeDocument: (content: string
 
 			if (!data || !data.success || !data.finalDocument) throw Error("")
 
-			const assistantMessage2: Message = {
+			const assistantMessage: Message = {
 				id: (Date.now() + 1).toString(),
 				content: `${data.finalDocument}`,
 				role: "assistant",
 				format: "mdx",
+				stateData: data.state,
 			};
-			setMessages((prev) => [...prev, assistantMessage1, assistantMessage2]);
+			setMessages((prev) => [...prev, assistantMessage]);
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err?.message : "";
 			setError(errorMessage);
@@ -101,34 +124,43 @@ export function ChatPanel({ changeDocument }: { changeDocument: (content: string
 					{messages.length > 0 ? (
 						<AnimatePresence mode="popLayout">
 							{messages.map((message) => (
-								<motion.div
-									key={message.id}
-									initial={{ opacity: 0, y: 10 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: -10 }}
-									transition={{ duration: 0.3, ease: "easeOut" }}
-									className={cn("group flex w-full", message.role === "user" ? "justify-end" : "justify-start")}
-								>
-									<Message>
-										<MessageContent markdown className={cn(message.role === "user" ? "bg-primary text-primary-foreground" : "bg-primary-foreground dark:bg-secondary-foreground")}>{message.content}</MessageContent>
-										<MessageActions className="self-end">
-											<MessageAction tooltip="Copy to clipboard">
-												<Button
-													variant="ghost"
-													size="icon"
-													className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100"
-													onClick={() => handleCopy(message.content)}
-												>
-													<Copy className={`size-4 ${copied ? "text-green-500" : ""}`} />
-												</Button>
-											</MessageAction>
-										</MessageActions>
-									</Message>
-								</motion.div>
+								<div key={message.id} className={cn("w-full flex flex-col gap-2", message.role === "assistant" ? "items-start" : "items-end")}>
+									{message.role === "assistant" && message.stateData && (
+										<ChainOfThoughtReasoning
+											key={message.id}
+											isLoading={false}
+											stateData={message.stateData}
+											animated={false}
+										/>
+									)}
+									<motion.div
+										initial={{ opacity: 0, y: 10 }}
+										animate={{ opacity: 1, y: 0 }}
+										exit={{ opacity: 0, y: -10 }}
+										transition={{ duration: 0.3, ease: "easeOut" }}
+										className={cn("group flex w-full", message.role === "user" ? "justify-end" : "justify-start")}
+									>
+										<Message>
+											<MessageContent markdown className={cn(message.role === "user" ? "bg-primary text-primary-foreground" : "bg-primary-foreground dark:bg-secondary-foreground")}>{message.content}</MessageContent>
+											<MessageActions className="self-end">
+												<MessageAction tooltip="Copy to clipboard">
+													<Button
+														variant="ghost"
+														size="icon"
+														className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100"
+														onClick={() => handleCopy(message.content)}
+													>
+														<Copy className={`size-4 ${copied ? "text-green-500" : ""}`} />
+													</Button>
+												</MessageAction>
+											</MessageActions>
+										</Message>
+									</motion.div>
+								</div>
 							))}
 						</AnimatePresence>
 					) : (
-						<div className="w-full h-full flex flex-col gap-6 justify-center items-center text-center">
+						<div className="w-full h-full flex flex-col gap-8 justify-center items-center text-center">
 							<div className="flex flex-col gap-1">
 								<h2 className="text-xl font-medium">
 									Experiment your writings with
