@@ -10,7 +10,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { MDXRenderer } from "@/lib/mdx-renderer";
+import { Markdown } from "@/components/ui/markdown";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "./ui/button";
 
@@ -96,7 +96,7 @@ export function DocumentPanel({
 								onClick={() => setIsEditingMarkdown(true)}
 								className="prose prose-sm dark:prose-invert -m-2 min-h-full w-full max-w-none cursor-text rounded-sm p-2 transition-all"
 							>
-								<MDXRenderer content={content} isMDX={false} />
+								<Markdown>{content}</Markdown>
 							</div>
 						)}
 					</div>

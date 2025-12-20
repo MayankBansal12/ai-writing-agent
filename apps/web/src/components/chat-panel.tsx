@@ -1,11 +1,11 @@
 "use client";
 
-import { ArrowUp, CheckLine, Copy, Square } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { ArrowUp, CheckLine, Copy, Square } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
 import { ChainOfThoughtReasoning } from "./chain-of-thought-reasoning";
 import {
 	Message,
@@ -50,13 +50,6 @@ interface Message {
 	format?: "mdx" | "plain";
 	stateData?: WritingAgentState;
 }
-
-// const assistantMessage1: Message = {
-// 	id: (Date.now() + 1).toString(),
-// 	content: `Here's your final document generated`,
-// 	role: "assistant",
-// 	format: "plain"
-// }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -285,11 +278,7 @@ export function ChatPanel({
 
 					{isLoading && <ChainOfThoughtReasoning isLoading={isLoading} />}
 					{error && (
-						<SystemMessage variant="error" fill>
-							{
-								"Unable to generate response, seems like a error from our side, please try agin!"
-							}
-						</SystemMessage>
+						<SystemMessage variant="error" fill>Unable to generate response, seems like a error from our side, please try again.</SystemMessage>
 					)}
 				</div>
 
