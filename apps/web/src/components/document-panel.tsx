@@ -93,7 +93,7 @@ export function DocumentPanel({
 							/>
 						) : (
 							<div
-								onClick={() => setIsEditingMarkdown(true)}
+								onDoubleClick={() => setIsEditingMarkdown(true)}
 								className="prose prose-sm dark:prose-invert -m-2 min-h-full w-full max-w-none cursor-text rounded-sm p-2 transition-all"
 							>
 								<Markdown>{content}</Markdown>

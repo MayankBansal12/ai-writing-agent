@@ -6,7 +6,6 @@ import { useTheme } from "next-themes";
 import { memo, useEffect, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeKatex from "rehype-katex";
-import rehypeSanitize from "rehype-sanitize";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";

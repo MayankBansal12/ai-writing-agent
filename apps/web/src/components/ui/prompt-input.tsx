@@ -1,12 +1,5 @@
 "use client";
 
-import React, {
-	createContext,
-	useContext,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from "react";
 import { Textarea } from "@/components/ui/textarea";
 import {
 	Tooltip,
@@ -15,6 +8,15 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import React, {
+	createContext,
+	forwardRef,
+	useContext,
+	useImperativeHandle,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react";
 
 type PromptInputContextType = {
 	isLoading: boolean;
@@ -29,7 +31,7 @@ type PromptInputContextType = {
 const PromptInputContext = createContext<PromptInputContextType>({
 	isLoading: false,
 	value: "",
-	setValue: () => {},
+	setValue: () => { },
 	maxHeight: 240,
 	onSubmit: undefined,
 	disabled: false,
@@ -51,7 +53,11 @@ export type PromptInputProps = {
 	disabled?: boolean;
 } & React.ComponentProps<"div">;
 
-function PromptInput({
+export type PromptInputRef = {
+	focus: () => void;
+};
+
+const PromptInput = forwardRef<PromptInputRef, PromptInputProps>(({
 	className,
 	isLoading = false,
 	maxHeight = 240,
@@ -62,9 +68,15 @@ function PromptInput({
 	disabled = false,
 	onClick,
 	...props
-}: PromptInputProps) {
+}, ref) => {
 	const [internalValue, setInternalValue] = useState(value || "");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+	useImperativeHandle(ref, () => ({
+		focus: () => {
+			textareaRef.current?.focus();
+		},
+	}));
 
 	const handleChange = (newValue: string) => {
 		setInternalValue(newValue);
@@ -92,7 +104,7 @@ function PromptInput({
 				<div
 					onClick={handleClick}
 					className={cn(
-						"cursor-text rounded-3xl border border-input bg-background p-2 shadow-xs",
+						"cursor-text rounded-3xl border border-input bg-background p-2 shadow-xs transform-gpu origin-center focus-within:border-accent-foreground/50 focus-within:scale-[1.02] transition-all duration-200 ease-out",
 						disabled && "cursor-not-allowed opacity-60",
 						className,
 					)}
@@ -101,9 +113,9 @@ function PromptInput({
 					{children}
 				</div>
 			</PromptInputContext.Provider>
-		</TooltipProvider>
+		</TooltipProvider >
 	);
-}
+});
 
 export type PromptInputTextareaProps = {
 	disableAutosize?: boolean;
@@ -225,9 +237,7 @@ function PromptInputAction({
 	);
 }
 
+PromptInput.displayName = "PromptInput";
 export {
-	PromptInput,
-	PromptInputTextarea,
-	PromptInputActions,
-	PromptInputAction,
+	PromptInput, PromptInputAction, PromptInputActions, PromptInputTextarea
 };
