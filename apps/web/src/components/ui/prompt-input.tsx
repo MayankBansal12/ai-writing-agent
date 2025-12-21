@@ -1,13 +1,5 @@
 "use client";
 
-import { Textarea } from "@/components/ui/textarea";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import React, {
 	createContext,
 	forwardRef,
@@ -17,6 +9,14 @@ import React, {
 	useRef,
 	useState,
 } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 type PromptInputContextType = {
 	isLoading: boolean;
@@ -31,7 +31,7 @@ type PromptInputContextType = {
 const PromptInputContext = createContext<PromptInputContextType>({
 	isLoading: false,
 	value: "",
-	setValue: () => { },
+	setValue: () => {},
 	maxHeight: 240,
 	onSubmit: undefined,
 	disabled: false,
@@ -57,65 +57,70 @@ export type PromptInputRef = {
 	focus: () => void;
 };
 
-const PromptInput = forwardRef<PromptInputRef, PromptInputProps>(({
-	className,
-	isLoading = false,
-	maxHeight = 240,
-	value,
-	onValueChange,
-	onSubmit,
-	children,
-	disabled = false,
-	onClick,
-	...props
-}, ref) => {
-	const [internalValue, setInternalValue] = useState(value || "");
-	const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-	useImperativeHandle(ref, () => ({
-		focus: () => {
-			textareaRef.current?.focus();
+const PromptInput = forwardRef<PromptInputRef, PromptInputProps>(
+	(
+		{
+			className,
+			isLoading = false,
+			maxHeight = 240,
+			value,
+			onValueChange,
+			onSubmit,
+			children,
+			disabled = false,
+			onClick,
+			...props
 		},
-	}));
+		ref,
+	) => {
+		const [internalValue, setInternalValue] = useState(value || "");
+		const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-	const handleChange = (newValue: string) => {
-		setInternalValue(newValue);
-		onValueChange?.(newValue);
-	};
+		useImperativeHandle(ref, () => ({
+			focus: () => {
+				textareaRef.current?.focus();
+			},
+		}));
 
-	const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
-		if (!disabled) textareaRef.current?.focus();
-		onClick?.(e);
-	};
+		const handleChange = (newValue: string) => {
+			setInternalValue(newValue);
+			onValueChange?.(newValue);
+		};
 
-	return (
-		<TooltipProvider>
-			<PromptInputContext.Provider
-				value={{
-					isLoading,
-					value: value ?? internalValue,
-					setValue: onValueChange ?? handleChange,
-					maxHeight,
-					onSubmit,
-					disabled,
-					textareaRef,
-				}}
-			>
-				<div
-					onClick={handleClick}
-					className={cn(
-						"cursor-text rounded-3xl border border-input bg-background p-2 shadow-xs transform-gpu origin-center focus-within:border-accent-foreground/50 focus-within:scale-[1.02] transition-all duration-200 ease-out",
-						disabled && "cursor-not-allowed opacity-60",
-						className,
-					)}
-					{...props}
+		const handleClick: React.MouseEventHandler<HTMLDivElement> = (e) => {
+			if (!disabled) textareaRef.current?.focus();
+			onClick?.(e);
+		};
+
+		return (
+			<TooltipProvider>
+				<PromptInputContext.Provider
+					value={{
+						isLoading,
+						value: value ?? internalValue,
+						setValue: onValueChange ?? handleChange,
+						maxHeight,
+						onSubmit,
+						disabled,
+						textareaRef,
+					}}
 				>
-					{children}
-				</div>
-			</PromptInputContext.Provider>
-		</TooltipProvider >
-	);
-});
+					<div
+						onClick={handleClick}
+						className={cn(
+							"origin-center transform-gpu cursor-text rounded-3xl border border-input bg-background p-2 shadow-xs transition-all duration-200 ease-out focus-within:scale-[1.02] focus-within:border-accent-foreground/50",
+							disabled && "cursor-not-allowed opacity-60",
+							className,
+						)}
+						{...props}
+					>
+						{children}
+					</div>
+				</PromptInputContext.Provider>
+			</TooltipProvider>
+		);
+	},
+);
 
 export type PromptInputTextareaProps = {
 	disableAutosize?: boolean;
@@ -239,5 +244,8 @@ function PromptInputAction({
 
 PromptInput.displayName = "PromptInput";
 export {
-	PromptInput, PromptInputAction, PromptInputActions, PromptInputTextarea
+	PromptInput,
+	PromptInputAction,
+	PromptInputActions,
+	PromptInputTextarea,
 };

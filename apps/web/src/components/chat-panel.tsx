@@ -1,11 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import { ArrowUp, CheckLine, Copy, Square } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { promptSuggestions } from "@/lib/constants/suggestions";
+import { cn } from "@/lib/utils";
 import { ChainOfThoughtReasoning } from "./chain-of-thought-reasoning";
 import {
 	Message,
@@ -22,7 +23,6 @@ import {
 } from "./ui/prompt-input";
 import { PromptSuggestion } from "./ui/prompt-suggestion";
 import { SystemMessage } from "./ui/system-message";
-import { promptSuggestions } from "@/lib/constants/suggestions";
 
 interface WritingAgentState {
 	userPrompt: string;
@@ -162,7 +162,9 @@ export function ChatPanel({
 											message.role === "user" ? "items-end" : "items-start",
 										)}
 									>
-										<Message className={message.role === "assistant" ? "w-full" : ""}>
+										<Message
+											className={message.role === "assistant" ? "w-full" : ""}
+										>
 											<MessageContent
 												markdown
 												className={cn(
@@ -180,7 +182,9 @@ export function ChatPanel({
 													variant="ghost"
 													size="icon"
 													className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100"
-													onClick={() => handleCopy(message.content, message.id)}
+													onClick={() =>
+														handleCopy(message.content, message.id)
+													}
 												>
 													<Copy
 														className={`size-4 ${copied === message.id ? "text-green-500" : ""}`}
@@ -218,7 +222,7 @@ export function ChatPanel({
 								</p>
 							</div>
 							<div className="flex w-[90%] min-w-sm flex-wrap items-center gap-2">
-								{promptSuggestions?.map(suggestion => (
+								{promptSuggestions?.map((suggestion) => (
 									<PromptSuggestion
 										key={suggestion.slice(0, 10)}
 										size="lg"
@@ -237,7 +241,10 @@ export function ChatPanel({
 
 					{isLoading && <ChainOfThoughtReasoning isLoading={isLoading} />}
 					{error && (
-						<SystemMessage variant="error" fill>Unable to generate response, seems like a error from our side, please try again.</SystemMessage>
+						<SystemMessage variant="error" fill>
+							Unable to generate response, seems like a error from our side,
+							please try again.
+						</SystemMessage>
 					)}
 				</div>
 

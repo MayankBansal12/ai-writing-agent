@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 export type FormatType = "mdx" | "plain";
 
@@ -50,7 +50,11 @@ export function FormatToggle({
 				</div>
 			</TooltipTrigger>
 			<TooltipContent>
-				<p>{format === "mdx" ? "Switch to plain for reading" : "Switch to mdx for editing"}</p>
+				<p>
+					{format === "mdx"
+						? "Switch to plain for reading"
+						: "Switch to mdx for editing"}
+				</p>
 			</TooltipContent>
 		</Tooltip>
 	);

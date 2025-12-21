@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { cn } from "@/lib/utils";
 import "katex/dist/katex.min.css";
@@ -17,11 +17,10 @@ export type MarkdownProps = {
 	components?: Partial<Components>;
 };
 
-
 function MermaidDiagram({ code }: { code: string }) {
 	const ref = useRef<HTMLDivElement>(null);
 	const [error, setError] = useState<string | null>(null);
-	const { resolvedTheme } = useTheme()
+	const { resolvedTheme } = useTheme();
 
 	useEffect(() => {
 		if (!ref.current || !code) return;
@@ -48,7 +47,7 @@ function MermaidDiagram({ code }: { code: string }) {
 			} catch (err) {
 				console.error("Mermaid syntax error:", err);
 				setError("Invalid diagram syntax");
-				ref.current!.innerHTML = ``;
+				ref.current!.innerHTML = "";
 			}
 		};
 
@@ -92,7 +91,7 @@ const DEFAULT_COMPONENTS: Partial<Components> = {
 			return (
 				<span
 					className={cn(
-						"rounded-md bg-accent/50 dark:bg-secondary-foreground py-1 px-2 font-mono text-sm",
+						"rounded-md bg-accent/50 px-2 py-1 font-mono text-sm dark:bg-secondary-foreground",
 						className,
 					)}
 					{...props}
@@ -103,9 +102,7 @@ const DEFAULT_COMPONENTS: Partial<Components> = {
 		}
 
 		const language = className?.match(/language-(\w+)/)?.[1] ?? "";
-		const code = Array.isArray(children)
-			? children.join("")
-			: String(children);
+		const code = Array.isArray(children) ? children.join("") : String(children);
 
 		if (language === "mermaid") {
 			return <MermaidDiagram code={code} />;
@@ -137,22 +134,16 @@ const DEFAULT_COMPONENTS: Partial<Components> = {
 			</table>
 		</div>
 	),
-	thead: ({ children }) => (
-		<thead className="bg-muted/50">{children}</thead>
-	),
+	thead: ({ children }) => <thead className="bg-muted/50">{children}</thead>,
 	tbody: ({ children }) => <tbody>{children}</tbody>,
-	tr: ({ children }) => (
-		<tr className="border-b border-border">{children}</tr>
-	),
+	tr: ({ children }) => <tr className="border-border border-b">{children}</tr>,
 	th: ({ children }) => (
 		<th className="border border-border px-3 py-2 text-left font-semibold">
 			{children}
 		</th>
 	),
 	td: ({ children }) => (
-		<td className="border border-border px-3 py-2">
-			{children}
-		</td>
+		<td className="border border-border px-3 py-2">{children}</td>
 	),
 	blockquote: ({ children }) => (
 		<blockquote className="my-4 border-muted-foreground border-l-4 pl-4 italic">
@@ -176,7 +167,6 @@ function MarkdownComponent({
 	className,
 	components = DEFAULT_COMPONENTS,
 }: MarkdownProps) {
-
 	return (
 		<div className={cn("markdown-content", className)}>
 			<ReactMarkdown

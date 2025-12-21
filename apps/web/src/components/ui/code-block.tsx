@@ -1,8 +1,8 @@
+import { useTheme } from "next-themes";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
 import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes";
 
 export type CodeBlockProps = {
 	children?: React.ReactNode;
@@ -39,8 +39,7 @@ function CodeBlockCode({
 	...props
 }: CodeBlockCodeProps) {
 	const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
-	const { resolvedTheme } = useTheme()
-
+	const { resolvedTheme } = useTheme();
 
 	useEffect(() => {
 		async function highlight() {
@@ -49,7 +48,10 @@ function CodeBlockCode({
 				return;
 			}
 
-			const html = await codeToHtml(code, { lang: language, theme: (resolvedTheme === "light") ? "min-light" : "monokai" });
+			const html = await codeToHtml(code, {
+				lang: language,
+				theme: resolvedTheme === "light" ? "min-light" : "monokai",
+			});
 			setHighlightedHtml(html);
 		}
 		highlight();

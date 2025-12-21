@@ -1,9 +1,4 @@
-import {
-	MessageSquareQuote,
-	Pencil,
-	Search,
-	Target
-} from "lucide-react";
+import { MessageSquareQuote, Pencil, Search, Target } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import {

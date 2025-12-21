@@ -5,12 +5,12 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { FormatToggle, type FormatType } from "@/components/format-toggle";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Markdown } from "@/components/ui/markdown";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Markdown } from "@/components/ui/markdown";
 import { ModeToggle } from "./mode-toggle";
 import { Button } from "./ui/button";
 
