@@ -48,7 +48,7 @@ JSON SCHEMA:
   "optional_search_queries": ["array of search queries if research needed"],
   "mode": "write | edit | review | research",
   "model_strategy": {
-    "allowed_models": ["gemma-4-31B-it", "gpt-oss-120b", "gemma-3-12b-it"],
+    "allowed_models": ["minimax-m3", "deepseek-v4-flash"],
     "planning": { "primary": "string", "fallback": "string" },
     "writing": {
       "high_end": { "model": "string", "difficulty": "high_end" },
@@ -73,7 +73,7 @@ JSON SCHEMA:
       "depends_on": ["array of task ids"],
       "status": "pending",
       "difficulty": "light | high_end",
-      "model": "string - one of: gemma-4-31B-it, gpt-oss-120b, gemma-3-12b-it"
+      "model": "string - one of: minimax-m3, deepseek-v4-flash"
     }
   ],
   "needs_review": "boolean",
