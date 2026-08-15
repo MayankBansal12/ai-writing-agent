@@ -45,9 +45,12 @@ interface WorkflowContext {
 	log?: WorkflowLogger;
 }
 
-const sambaEndpoint =
-	process.env.SAMBA_API_BASE_URL || "https://api.sambanova.ai/v1";
-const sambaApiKey = process.env.SAMBA_API_KEY || "";
+const openCodeEndpoint =
+	process.env.OPENCODE_API_BASE_URL || "https://opencode.ai/zen/go/v1";
+const openCodeApiKey = process.env.OPENCODE_API_KEY || "";
+
+const usesAnthropicMessagesApi = (model: string) =>
+	model.startsWith("minimax-") || model.startsWith("qwen3.");
 
 const extractTextContent = (content: unknown): string => {
 	if (typeof content === "string") return content;
@@ -76,30 +79,48 @@ const snippet = (value: string, length = 500) =>
 	value.length > length ? `${value.slice(0, length)}…` : value;
 
 const invokeAgent = async (model: string, prompt: string): Promise<string> => {
-	const response = await fetch(`${sambaEndpoint}/chat/completions`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${sambaApiKey}`,
+	if (!openCodeApiKey) {
+		throw new Error("OPENCODE_API_KEY is not configured");
+	}
+
+	const usesMessagesApi = usesAnthropicMessagesApi(model);
+	const response = await fetch(
+		`${openCodeEndpoint.replace(/\/$/, "")}/${usesMessagesApi ? "messages" : "chat/completions"}`,
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${openCodeApiKey}`,
+				...(usesMessagesApi
+					? {
+							"x-api-key": openCodeApiKey,
+							"anthropic-version": "2023-06-01",
+						}
+					: {}),
+			},
+			body: JSON.stringify({
+				model,
+				temperature: 0,
+				...(usesMessagesApi ? { max_tokens: 8192 } : {}),
+				messages: [{ role: "user", content: prompt }],
+			}),
 		},
-		body: JSON.stringify({
-			model,
-			temperature: 0,
-			messages: [{ role: "user", content: prompt }],
-		}),
-	});
+	);
 
 	if (!response.ok) {
 		const errorBody = await response.text().catch(() => "");
 		throw new Error(
-			`SambaNova request failed (${response.status}): ${errorBody}`,
+			`OpenCode Go request failed (${response.status}): ${errorBody}`,
 		);
 	}
 
 	const json = (await response.json()) as {
 		choices?: Array<{ message?: { content?: unknown } }>;
+		content?: unknown;
 	};
-	const content = extractTextContent(json?.choices?.[0]?.message?.content);
+	const content = extractTextContent(
+		usesMessagesApi ? json.content : json?.choices?.[0]?.message?.content,
+	);
 
 	if (!content) {
 		throw new Error(`Model ${model} returned empty content`);
@@ -113,27 +134,33 @@ const resolveModel = (fallback: string, envKey: string) =>
 
 const modelRoutes = {
 	planning: {
-		primary: resolveModel("gemma-4-31B-it", "SAMBA_MODEL_PLANNING"),
-		fallback: resolveModel("gpt-oss-120b", "SAMBA_MODEL_PLANNING_FALLBACK"),
+		primary: resolveModel("minimax-m3", "OPENCODE_MODEL_PLANNING"),
+		fallback: resolveModel(
+			"deepseek-v4-flash",
+			"OPENCODE_MODEL_PLANNING_FALLBACK",
+		),
 	},
 	writing: {
-		high_end: resolveModel("gemma-4-31B-it", "SAMBA_MODEL_WRITER_HIGH_END"),
-		light: resolveModel("gpt-oss-120b", "SAMBA_MODEL_WRITER_LIGHT"),
+		high_end: resolveModel("minimax-m3", "OPENCODE_MODEL_WRITER_HIGH_END"),
+		light: resolveModel("deepseek-v4-flash", "OPENCODE_MODEL_WRITER_LIGHT"),
 	},
 	review: {
-		high_end: resolveModel("gpt-oss-120b", "SAMBA_MODEL_REVIEW_HIGH_END"),
-		light: resolveModel("gemma-4-31B-it", "SAMBA_MODEL_REVIEW_LIGHT"),
+		high_end: resolveModel("minimax-m3", "OPENCODE_MODEL_REVIEW_HIGH_END"),
+		light: resolveModel("deepseek-v4-flash", "OPENCODE_MODEL_REVIEW_LIGHT"),
 	},
 	improvement: {
-		high_end: resolveModel(
-			"gemma-3-12b-it",
-			"SAMBA_MODEL_IMPROVEMENT_HIGH_END",
+		high_end: resolveModel("minimax-m3", "OPENCODE_MODEL_IMPROVEMENT_HIGH_END"),
+		light: resolveModel(
+			"deepseek-v4-flash",
+			"OPENCODE_MODEL_IMPROVEMENT_LIGHT",
 		),
-		light: resolveModel("gpt-oss-120b", "SAMBA_MODEL_IMPROVEMENT_LIGHT"),
 	},
 	research: {
-		primary: resolveModel("gpt-oss-120b", "SAMBA_MODEL_RESEARCH"),
-		fallback: resolveModel("gemma-3-12b-it", "SAMBA_MODEL_RESEARCH_FALLBACK"),
+		primary: resolveModel("minimax-m3", "OPENCODE_MODEL_RESEARCH"),
+		fallback: resolveModel(
+			"deepseek-v4-flash",
+			"OPENCODE_MODEL_RESEARCH_FALLBACK",
+		),
 	},
 };
 

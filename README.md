@@ -63,8 +63,8 @@ cp apps/server/.env.example apps/server/.env
 Server variables:
 
 ```env
-GROQ_API_KEY=your_groq_api_key
-GROQ_BASE_URL=https://api.groq.com/openai/v1/
+OPENCODE_API_KEY=your_opencode_go_api_key
+OPENCODE_API_BASE_URL=https://opencode.ai/zen/go/v1
 PORT=8000
 CORS_ORIGIN=http://localhost:3001
 

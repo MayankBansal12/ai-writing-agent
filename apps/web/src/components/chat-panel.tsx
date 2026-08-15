@@ -2,11 +2,28 @@
 
 import { useLiveQuery } from "dexie-react-hooks";
 import { diffLines } from "diff";
-import { ArrowUp, CheckLine, ChevronDown, ChevronUp, Copy, Square, X } from "lucide-react";
+import {
+	ArrowUp,
+	CheckLine,
+	ChevronDown,
+	ChevronUp,
+	Copy,
+	RotateCcw,
+	Square,
+	X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { promptSuggestions } from "@/lib/constants/suggestions";
 import { loadChat, type PersistedChatMessage, saveChat } from "@/lib/db";
 import { cn } from "@/lib/utils";
@@ -132,6 +149,7 @@ export function ChatPanel({
 	);
 	const [streamTasks, setStreamTasks] = useState<WritingTask[]>([]);
 	const [quota, setQuota] = useState<QuotaState | null>(null);
+	const [resetDialogOpen, setResetDialogOpen] = useState(false);
 	const promptInputRef = useRef<PromptInputRef>(null);
 	const hydratedRef = useRef(false);
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -426,6 +444,18 @@ export function ChatPanel({
 		setDiffReview(null);
 	};
 
+	const handleResetChat = useCallback(() => {
+		if (isLoading) return;
+		updateMessages([]);
+		setError(null);
+		setStreamState(null);
+		setStreamTasks([]);
+		setDiffReview(null);
+		setInputValue("");
+		setCopied(null);
+		setResetDialogOpen(false);
+	}, [isLoading, updateMessages]);
+
 	const handleSend = async () => {
 		if (!inputValue.trim()) return;
 		if (quota?.remaining === 0) return;
@@ -626,8 +656,22 @@ export function ChatPanel({
 
 	return (
 		<Card className="flex h-full flex-col">
-			<CardHeader>
+			<CardHeader className="items-center">
 				<h2 className="font-semibold text-lg">Agent Chat</h2>
+				<CardAction>
+					<Button
+						variant="ghost"
+						size="sm"
+						className="gap-1.5 text-muted-foreground"
+						disabled={messages.length === 0 || isLoading}
+						onClick={() => setResetDialogOpen(true)}
+						aria-label="Reset chat"
+						title="Clear chat history"
+					>
+						<RotateCcw className="size-4" />
+						Reset
+					</Button>
+				</CardAction>
 			</CardHeader>
 			<CardContent className="flex flex-1 flex-col justify-between gap-4 overflow-hidden p-0">
 				<div className="relative min-h-0 flex-1">
@@ -823,6 +867,29 @@ export function ChatPanel({
 						</PromptInputActions>
 					</PromptInput>
 				</div>
+
+				<Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Reset chat?</DialogTitle>
+							<DialogDescription>
+								This clears the conversation history. The document is not
+								affected.
+							</DialogDescription>
+						</DialogHeader>
+						<DialogFooter>
+							<Button
+								variant="outline"
+								onClick={() => setResetDialogOpen(false)}
+							>
+								Cancel
+							</Button>
+							<Button variant="default" onClick={handleResetChat}>
+								Reset chat
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
 
 				{diffReview && (
 					<div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 p-4 backdrop-blur-sm">
