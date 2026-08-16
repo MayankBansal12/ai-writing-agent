@@ -1,7 +1,7 @@
 "use client";
 
 import CodeBlock from "@tiptap/extension-code-block";
-import { findChildren } from "@tiptap/core";
+import { type Editor, findChildren } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import { useTheme } from "next-themes";
@@ -177,7 +177,7 @@ export const ShikiCodeBlock = CodeBlock.extend({
 	},
 });
 
-export function ShikiCodeBlockThemeBridge() {
+export function ShikiCodeBlockThemeBridge({ editor }: { editor: Editor }) {
 	const { resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
 	useEffect(() => {
@@ -186,6 +186,9 @@ export function ShikiCodeBlockThemeBridge() {
 	useEffect(() => {
 		if (!mounted) return;
 		setShikiCodeBlockTheme(resolvedTheme === "light" ? "min-light" : "monokai");
-	}, [resolvedTheme, mounted]);
+		editor.view.dispatch(
+			editor.state.tr.setMeta("shikiCodeBlockThemeChanged", true),
+		);
+	}, [editor, resolvedTheme, mounted]);
 	return null;
 }

@@ -8,7 +8,6 @@ import { TableRow } from "@tiptap/extension-table-row";
 import { TaskItem } from "@tiptap/extension-task-item";
 import { TaskList } from "@tiptap/extension-task-list";
 import Typography from "@tiptap/extension-typography";
-import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef } from "react";
@@ -37,6 +36,7 @@ export function RichDocumentEditor({
 	const lastEmitted = useRef<string>(content);
 
 	const editor = useEditor({
+		immediatelyRender: false,
 		extensions: [
 			StarterKit.configure({
 				codeBlock: false,
@@ -59,7 +59,6 @@ export function RichDocumentEditor({
 			Placeholder.configure({
 				placeholder: 'Start writing... or type "/" for commands',
 			}),
-			Underline,
 			Typography,
 			MathInline,
 			MathBlock,
@@ -99,7 +98,7 @@ export function RichDocumentEditor({
 				className="rich-editor-content thin-scrollbar"
 			/>
 			<SlashCommandMenu editor={editor} />
-			<ShikiCodeBlockThemeBridge />
+			<ShikiCodeBlockThemeBridge editor={editor} />
 		</div>
 	);
 }
