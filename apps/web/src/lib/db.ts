@@ -49,9 +49,32 @@ function getDB(): WavmoDB {
 const DOCUMENT_ID = "current" as const;
 const CHAT_ID = "current" as const;
 
+const corruptedWelcomeSection =
+	/(### it writes code examples if required\s*\n+)```(?:ts|typescript)\s*\n(?:\s*\[object Object\]\s*,?)+\s*\n```(\s*\n+### it can handle Math as well)/;
+
+function repairLegacyDocument(content: string): string {
+	if (!corruptedWelcomeSection.test(content)) {
+		return content;
+	}
+
+	const welcomeCodeBlock = welcomeText.match(/```ts\n[\s\S]*?\n```/)?.[0];
+	if (!welcomeCodeBlock) return content;
+
+	return content.replace(
+		corruptedWelcomeSection,
+		(_section, beforeCodeBlock: string, afterCodeBlock: string) =>
+			`${beforeCodeBlock}${welcomeCodeBlock}${afterCodeBlock}`,
+	);
+}
+
 export async function loadDocument(): Promise<string | undefined> {
 	const row = await getDB().document.get(DOCUMENT_ID);
-	return row?.content;
+	if (!row) return undefined;
+
+	// `loadDocument` is used by `useLiveQuery`, whose querier runs in a
+	// read-only Dexie transaction. Keep this path read-only and persist any
+	// legacy repair from `ensureSeeded` instead.
+	return repairLegacyDocument(row.content);
 }
 
 export async function saveDocument(content: string): Promise<void> {
@@ -81,30 +104,37 @@ let seeded = false;
 export async function ensureSeeded(): Promise<void> {
 	if (seeded) return;
 	const db = getDB();
-	const [doc, chat] = await Promise.all([
-		db.document.get(DOCUMENT_ID),
-		db.chat.get(CHAT_ID),
-	]);
-	const now = Date.now();
-	const needDoc = !doc;
-	const needChat = !chat;
-	if (needDoc || needChat) {
-		await db.transaction("rw", db.document, db.chat, async () => {
-			if (needDoc) {
+	await db.transaction("rw", db.document, db.chat, async () => {
+		const [doc, chat] = await Promise.all([
+			db.document.get(DOCUMENT_ID),
+			db.chat.get(CHAT_ID),
+		]);
+		const now = Date.now();
+
+		if (!doc) {
+			await db.document.put({
+				id: DOCUMENT_ID,
+				content: welcomeText,
+				updatedAt: now,
+			});
+		} else {
+			const repairedDocument = repairLegacyDocument(doc.content);
+			if (repairedDocument !== doc.content) {
 				await db.document.put({
-					id: DOCUMENT_ID,
-					content: welcomeText,
+					...doc,
+					content: repairedDocument,
 					updatedAt: now,
 				});
 			}
-			if (needChat) {
-				await db.chat.put({
-					id: CHAT_ID,
-					messages: [],
-					updatedAt: now,
-				});
-			}
-		});
-	}
+		}
+
+		if (!chat) {
+			await db.chat.put({
+				id: CHAT_ID,
+				messages: [],
+				updatedAt: now,
+			});
+		}
+	});
 	seeded = true;
 }
