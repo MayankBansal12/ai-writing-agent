@@ -1,7 +1,7 @@
 "use client";
 
-import CodeBlock from "@tiptap/extension-code-block";
 import { type Editor, findChildren } from "@tiptap/core";
+import CodeBlock from "@tiptap/extension-code-block";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import { useTheme } from "next-themes";
@@ -16,6 +16,7 @@ import {
 const SUPPORTED_LANGS = new Set(Object.keys(bundledLanguages));
 
 let highlighterPromise: Promise<Highlighter> | null = null;
+let highlighter: Highlighter | null = null;
 let currentTheme: "min-light" | "monokai" = "min-light";
 
 function getHighlighter(): Promise<Highlighter> {
@@ -40,6 +41,9 @@ function getHighlighter(): Promise<Highlighter> {
 				"md",
 				"mdx",
 			],
+		}).then((instance) => {
+			highlighter = instance;
+			return instance;
 		});
 	}
 	return highlighterPromise;
@@ -54,11 +58,10 @@ function buildStyle(token: ThemedToken): string | undefined {
 	if (token.color) parts.push(`color:${token.color}`);
 	if (token.bgColor) parts.push(`background-color:${token.bgColor}`);
 	if (token.fontStyle) {
-		const styleProps: string[] = [];
-		if ((token.fontStyle as number) & 1) styleProps.push("italic");
-		if ((token.fontStyle as number) & 2) styleProps.push("bold");
-		if ((token.fontStyle as number) & 4) styleProps.push("underline");
-		if (styleProps.length) parts.push(`font-style:${styleProps.join(" ")}`);
+		if ((token.fontStyle as number) & 1) parts.push("font-style:italic");
+		if ((token.fontStyle as number) & 2) parts.push("font-weight:bold");
+		if ((token.fontStyle as number) & 4)
+			parts.push("text-decoration:underline");
 	}
 	return parts.length ? parts.join(";") : undefined;
 }
@@ -83,27 +86,26 @@ function buildDecorations({
 		const code = block.node.textContent;
 		const from = block.pos + 1;
 		const lang =
-			languageAttr && SUPPORTED_LANGS.has(languageAttr) && loadedLangs.includes(languageAttr)
+			languageAttr &&
+			SUPPORTED_LANGS.has(languageAttr) &&
+			loadedLangs.includes(languageAttr)
 				? languageAttr
 				: "txt";
 		if (!loadedLangs.includes(lang)) continue;
 
 		const result = highlighter.codeToTokens(code, { lang, theme });
-		let offset = 0;
 		for (const line of result.tokens) {
 			for (const token of line) {
 				const length = token.content.length;
 				if (length === 0) continue;
 				const style = buildStyle(token);
+				if (!style) continue;
 				decorations.push(
-					Decoration.inline(from + offset, from + offset + length, {
-						nodeName: "span",
+					Decoration.inline(from + token.offset, from + token.offset + length, {
 						style,
 					}),
 				);
-				offset += length;
 			}
-			offset += 1;
 		}
 	}
 
@@ -120,10 +122,19 @@ export const ShikiCodeBlock = CodeBlock.extend({
 				state: {
 					init: () => DecorationSet.empty,
 					apply(tr, set) {
-						const action = tr.getMeta("shikiCodeBlock") as
-							| { type: "set"; decorationSet: DecorationSet; theme: "min-light" | "monokai" }
-							| undefined;
-						if (action?.type === "set") return action.decorationSet;
+						if (
+							highlighter &&
+							(tr.docChanged ||
+								tr.getMeta(pluginKey) ||
+								tr.getMeta("shikiCodeBlockThemeChanged"))
+						) {
+							return buildDecorations({
+								doc: tr.doc,
+								name: "codeBlock",
+								highlighter,
+								theme: currentTheme,
+							});
+						}
 						return set.map(tr.mapping, tr.doc);
 					},
 				},
@@ -133,42 +144,19 @@ export const ShikiCodeBlock = CodeBlock.extend({
 					},
 				},
 				view: (view) => {
-					let lastTheme = currentTheme;
-					let queued = false;
-					const runUpdate = async () => {
-						if (queued) return;
-						queued = true;
-						try {
-							const highlighter = await getHighlighter();
-							const decorationSet = buildDecorations({
-								doc: view.state.doc,
-								name: "codeBlock",
-								highlighter,
-								theme: currentTheme,
-							});
-							const tr = view.state.tr.setMeta("shikiCodeBlock", {
-								type: "set",
-								decorationSet,
-								theme: currentTheme,
-							});
-							view.dispatch(tr);
-							lastTheme = currentTheme;
-						} catch (err) {
+					let destroyed = false;
+					void getHighlighter()
+						.then(() => {
+							if (!destroyed) {
+								view.dispatch(view.state.tr.setMeta(pluginKey, true));
+							}
+						})
+						.catch((err) => {
 							console.error("[shiki] code block decoration update failed", err);
-						} finally {
-							queued = false;
-						}
-					};
-					runUpdate();
+						});
 					return {
-						update(_view, _prevState) {
-							if (currentTheme !== lastTheme) {
-								runUpdate();
-								return;
-							}
-							if (view.state.doc !== _prevState.doc) {
-								runUpdate();
-							}
+						destroy() {
+							destroyed = true;
 						},
 					};
 				},
