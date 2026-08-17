@@ -16,8 +16,15 @@ import {
 const SUPPORTED_LANGS = new Set(Object.keys(bundledLanguages));
 
 let highlighterPromise: Promise<Highlighter> | null = null;
-let highlighter: Highlighter | null = null;
 let currentTheme: "min-light" | "monokai" = "min-light";
+const HIGHLIGHT_DEBOUNCE_MS = 75;
+
+function isFirefox(): boolean {
+	return (
+		typeof navigator !== "undefined" &&
+		/(?:Firefox|FxiOS)\//.test(navigator.userAgent)
+	);
+}
 
 function getHighlighter(): Promise<Highlighter> {
 	if (!highlighterPromise) {
@@ -41,9 +48,6 @@ function getHighlighter(): Promise<Highlighter> {
 				"md",
 				"mdx",
 			],
-		}).then((instance) => {
-			highlighter = instance;
-			return instance;
 		});
 	}
 	return highlighterPromise;
@@ -112,9 +116,34 @@ function buildDecorations({
 	return DecorationSet.create(doc, decorations);
 }
 
+function codeBlocksChanged({
+	previousDoc,
+	nextDoc,
+	name,
+}: {
+	previousDoc: Parameters<typeof findChildren>[0];
+	nextDoc: Parameters<typeof findChildren>[0];
+	name: string;
+}): boolean {
+	const isCodeBlock = (node: { type: { name: string } }) =>
+		node.type.name === name;
+	const previousBlocks = findChildren(previousDoc, isCodeBlock);
+	const nextBlocks = findChildren(nextDoc, isCodeBlock);
+
+	if (previousBlocks.length !== nextBlocks.length) return true;
+	return previousBlocks.some(
+		(block, index) => !block.node.eq(nextBlocks[index].node),
+	);
+}
+
 export const ShikiCodeBlock = CodeBlock.extend({
 	name: "codeBlock",
 	addProseMirrorPlugins() {
+		// Firefox can serialize inline decorations from the editable DOM back into
+		// the document as "[object Object]". Keep code blocks plain until syntax
+		// highlighting is moved outside the contenteditable tree.
+		if (isFirefox()) return [];
+
 		const pluginKey = new PluginKey("shiki-codeblock");
 		return [
 			new Plugin({
@@ -122,19 +151,10 @@ export const ShikiCodeBlock = CodeBlock.extend({
 				state: {
 					init: () => DecorationSet.empty,
 					apply(tr, set) {
-						if (
-							highlighter &&
-							(tr.docChanged ||
-								tr.getMeta(pluginKey) ||
-								tr.getMeta("shikiCodeBlockThemeChanged"))
-						) {
-							return buildDecorations({
-								doc: tr.doc,
-								name: "codeBlock",
-								highlighter,
-								theme: currentTheme,
-							});
-						}
+						const nextDecorations = tr.getMeta(pluginKey) as
+							| DecorationSet
+							| undefined;
+						if (nextDecorations) return nextDecorations;
 						return set.map(tr.mapping, tr.doc);
 					},
 				},
@@ -145,18 +165,74 @@ export const ShikiCodeBlock = CodeBlock.extend({
 				},
 				view: (view) => {
 					let destroyed = false;
-					void getHighlighter()
-						.then(() => {
-							if (!destroyed) {
-								view.dispatch(view.state.tr.setMeta(pluginKey, true));
-							}
-						})
-						.catch((err) => {
+					let lastTheme = currentTheme;
+					let timer: ReturnType<typeof setTimeout> | null = null;
+					let updating = false;
+					let rerun = false;
+
+					const updateDecorations = async () => {
+						timer = null;
+						if (updating) {
+							rerun = true;
+							return;
+						}
+
+						updating = true;
+						try {
+							do {
+								rerun = false;
+								const highlighter = await getHighlighter();
+								if (destroyed) return;
+
+								const doc = view.state.doc;
+								const theme = currentTheme;
+								const decorationSet = buildDecorations({
+									doc,
+									name: "codeBlock",
+									highlighter,
+									theme,
+								});
+
+								if (doc !== view.state.doc || theme !== currentTheme) {
+									rerun = true;
+									continue;
+								}
+
+								if (timer) clearTimeout(timer);
+								timer = null;
+								lastTheme = theme;
+								view.dispatch(view.state.tr.setMeta(pluginKey, decorationSet));
+							} while (rerun && !destroyed);
+						} catch (err) {
 							console.error("[shiki] code block decoration update failed", err);
-						});
+						} finally {
+							updating = false;
+						}
+					};
+
+					const scheduleUpdate = (delay: number) => {
+						if (timer) clearTimeout(timer);
+						timer = setTimeout(() => void updateDecorations(), delay);
+					};
+
+					scheduleUpdate(0);
 					return {
+						update(nextView, previousState) {
+							const themeChanged = currentTheme !== lastTheme;
+							if (
+								themeChanged ||
+								codeBlocksChanged({
+									previousDoc: previousState.doc,
+									nextDoc: nextView.state.doc,
+									name: "codeBlock",
+								})
+							) {
+								scheduleUpdate(themeChanged ? 0 : HIGHLIGHT_DEBOUNCE_MS);
+							}
+						},
 						destroy() {
 							destroyed = true;
+							if (timer) clearTimeout(timer);
 						},
 					};
 				},
