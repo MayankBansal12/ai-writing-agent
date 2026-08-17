@@ -69,6 +69,7 @@ async function renderExcalidrawSvg(
 		elements: excalidrawElements,
 		files: files ?? null,
 		exportPadding: 8,
+		skipInliningFonts: true,
 		appState: { exportBackground: false },
 	});
 

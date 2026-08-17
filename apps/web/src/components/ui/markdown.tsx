@@ -4,7 +4,14 @@ import { cn } from "@/lib/utils";
 import { getAppHighlighter } from "@/lib/shiki-highlighter";
 import "katex/dist/katex.min.css";
 import rehypeShikiFromHighlighter from "@shikijs/rehype/core";
-import { memo, useEffect, useState } from "react";
+import {
+	Children,
+	isValidElement,
+	memo,
+	type ReactNode,
+	useEffect,
+	useState,
+} from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkBreaks from "remark-breaks";
@@ -18,6 +25,23 @@ export type MarkdownProps = {
 	className?: string;
 	components?: Partial<Components>;
 };
+
+function getTextContent(node: ReactNode): string {
+	if (typeof node === "string" || typeof node === "number") {
+		return String(node);
+	}
+	if (!node) return "";
+
+	return Children.toArray(node)
+		.map((child) => {
+			if (typeof child === "string" || typeof child === "number") {
+				return String(child);
+			}
+			if (!isValidElement<{ children?: ReactNode }>(child)) return "";
+			return getTextContent(child.props.children);
+		})
+		.join("");
+}
 
 const DEFAULT_COMPONENTS: Partial<Components> = {
 	h1: ({ children }) => (
@@ -57,10 +81,9 @@ const DEFAULT_COMPONENTS: Partial<Components> = {
 		}
 
 		const language = className?.match(/language-(\w+)/)?.[1] ?? "";
-		const code = Array.isArray(children) ? children.join("") : String(children);
 
 		if (language === "mermaid") {
-			return <MermaidDiagram code={code} />;
+			return <MermaidDiagram code={getTextContent(children)} />;
 		}
 
 		return (

@@ -8,7 +8,6 @@ import { TableRow } from "@tiptap/extension-table-row";
 import { TaskItem } from "@tiptap/extension-task-item";
 import { TaskList } from "@tiptap/extension-task-list";
 import Typography from "@tiptap/extension-typography";
-import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef } from "react";
@@ -30,6 +29,51 @@ interface RichDocumentEditorProps {
 	onChange: (markdown: string) => void;
 }
 
+type MarkdownStorage = {
+	markdown: {
+		getMarkdown: () => string;
+	};
+};
+
+const FENCED_CODE_BLOCK = /```([^\n]*)\n([\s\S]*?)\n```/g;
+const OBJECT_ONLY_CODE =
+	/^\s*\[object Object\](?:\s*,?\s*\[object Object\])*\s*,?\s*$/;
+
+function restoreObjectOnlyCodeBlocks(
+	nextMarkdown: string,
+	previousMarkdown: string,
+): string {
+	const previousBlocks = Array.from(
+		previousMarkdown.matchAll(FENCED_CODE_BLOCK),
+		(match) => ({
+			block: match[0],
+			language: match[1].trim(),
+			content: match[2],
+		}),
+	);
+	let blockIndex = 0;
+	let unrecoverable = false;
+
+	const repaired = nextMarkdown.replace(
+		FENCED_CODE_BLOCK,
+		(block, language: string, code: string) => {
+			const previous = previousBlocks[blockIndex++];
+			if (!OBJECT_ONLY_CODE.test(code)) return block;
+			if (
+				!previous ||
+				previous.language !== language.trim() ||
+				OBJECT_ONLY_CODE.test(previous.content)
+			) {
+				unrecoverable = true;
+				return block;
+			}
+			return previous.block;
+		},
+	);
+
+	return unrecoverable ? previousMarkdown : repaired;
+}
+
 export function RichDocumentEditor({
 	content,
 	onChange,
@@ -37,6 +81,7 @@ export function RichDocumentEditor({
 	const lastEmitted = useRef<string>(content);
 
 	const editor = useEditor({
+		immediatelyRender: false,
 		extensions: [
 			StarterKit.configure({
 				codeBlock: false,
@@ -59,7 +104,6 @@ export function RichDocumentEditor({
 			Placeholder.configure({
 				placeholder: 'Start writing... or type "/" for commands',
 			}),
-			Underline,
 			Typography,
 			MathInline,
 			MathBlock,
@@ -69,13 +113,31 @@ export function RichDocumentEditor({
 			patchMarkdownSerializer(editor);
 		},
 		onUpdate: ({ editor }) => {
-			const md = (editor.storage as Record<string, any>).markdown.getMarkdown();
+			const serialized = (
+				editor.storage as unknown as MarkdownStorage
+			).markdown.getMarkdown();
+			const md = restoreObjectOnlyCodeBlocks(serialized, lastEmitted.current);
+			if (md !== serialized) {
+				const selectionFrom = editor.state.selection.from;
+				queueMicrotask(() => {
+					if (editor.isDestroyed) return;
+					editor.commands.setContent(md, { emitUpdate: false });
+					editor.commands.setTextSelection(
+						Math.min(selectionFrom, editor.state.doc.content.size - 1),
+					);
+				});
+			}
 			lastEmitted.current = md;
 			onChange(md);
 		},
 		editorProps: {
 			attributes: {
 				class: "rich-editor-body",
+				spellcheck: "false",
+				"data-gramm": "false",
+				"data-gramm_editor": "false",
+				"data-enable-grammarly": "false",
+				"data-lt-active": "false",
 			},
 		},
 	});
@@ -99,7 +161,7 @@ export function RichDocumentEditor({
 				className="rich-editor-content thin-scrollbar"
 			/>
 			<SlashCommandMenu editor={editor} />
-			<ShikiCodeBlockThemeBridge />
+			<ShikiCodeBlockThemeBridge editor={editor} />
 		</div>
 	);
 }
